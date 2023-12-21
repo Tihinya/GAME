@@ -18,7 +18,18 @@ export default function Lobby() {
           <input type="text" className="chat-input" />
         </div>
       </div>
-      <div className="main-page-lobby-info"></div>
+      <div className="main-page-lobby-info">
+        <div className="main-page-lobby-timer">
+          <p>Time to close lobby:</p>
+          <p>4:19</p>
+        </div>
+        <div className="main-page-lobby-players">
+          <p>Players:3/4</p>
+          <p>HungryStepan</p>
+          <p>skibiDick</p>
+          <p>biba</p>
+        </div>
+      </div>
     </div>
   );
 }

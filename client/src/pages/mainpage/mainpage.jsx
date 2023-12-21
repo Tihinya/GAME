@@ -1,7 +1,10 @@
-import Gachi from "../../Gachi.js/src/core/framework";
-import "../mainpage/mainpage.css";
+import Gachi, { useNavigate } from "../../Gachi.js/src/core/framework";
+import "./mainpage.css";
+import logo from "../../public/img/logo.png";
 
 export default function MenuPage() {
+  const navigate = useNavigate(); // Corrected declaration
+
   const showWriteName = () => {
     let playButton = document.getElementById("play-button");
     let nameContainer = document.getElementById("name-container");
@@ -16,7 +19,7 @@ export default function MenuPage() {
   return (
     <div className="main-page">
       <div className="main-page_container">
-        <img className="logo" src="./pages/img/logo" alt="Bomberman" />
+        <img className="logo" src={logo} alt="Bomberman" />
         <div className="play-button-container">
           <div id="play-button" className="play-button" onClick={showWriteName}>
             PLAY
@@ -27,7 +30,9 @@ export default function MenuPage() {
               placeholder="Write your name"
               maxLength="21"
             />
-            <div className="accept-name">Accept</div>
+            <div className="accept-name" onClick={() => navigate("/lobby")}>
+              Accept
+            </div>
           </div>
         </div>
       </div>

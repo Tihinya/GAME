@@ -351,8 +351,7 @@ template {
 
   min-height: 100%;
 
-  background: black url("../img/backgroundImage") fixed;
-  background-repeat: no-repeat;
+  background: black url("../img/backgroundImage");
   background-size: cover;
 }
 

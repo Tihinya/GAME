@@ -1,0 +1,116 @@
+.main-page {
+  display: flex;
+
+  height: 100%;
+  justify-content: center;
+  align-items: flex-start;
+
+  background-image: url("../../public/img/background");
+  background-size: cover;
+}
+
+.main-page_container {
+  display: flex;
+  flex-direction: column;
+
+  width: 100%;
+
+  align-items: center;
+
+  gap: 15rem;
+}
+
+.play-button-container {
+  display: flex;
+  flex-direction: column;
+
+  width: 100%;
+  height: 3 rem;
+  padding: 2.5rem 0rem;
+
+  justify-content: center;
+  align-items: center;
+
+  gap: 10px;
+
+  background: rgba(27, 27, 27, 0.7);
+}
+
+.play-button {
+  display: flex;
+
+  padding: 2rem 10rem;
+
+  justify-content: center;
+  align-items: center;
+
+  border-radius: 30px;
+  background: rgb(255, 255, 255, 0.5);
+
+  color: #fff;
+  font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 40px;
+  line-height: normal;
+
+  cursor: pointer;
+}
+
+.write-name {
+  display: flex;
+
+  padding: 2rem 3rem;
+
+  justify-content: center;
+  align-items: center;
+
+  border-radius: 30px;
+  background: rgb(255, 255, 255, 0.5);
+
+  color: #fff;
+  font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 40px;
+  line-height: normal;
+}
+
+.accept-name {
+  display: flex;
+
+  padding: 2rem;
+
+  justify-content: center;
+  align-items: center;
+
+  border-radius: 30px;
+  background: #f6c96c;
+  color: black;
+
+  gap: 10px;
+
+  cursor: pointer;
+}
+
+.logo {
+  height: 35vh;
+}
+
+.name-container {
+  display: none;
+
+  width: 100%;
+  height: 3rem;
+  padding: 2rem 0rem;
+
+  justify-content: center;
+  align-items: center;
+
+  font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+  font-size: 40px;
+  font-style: normal;
+  font-weight: 400;
+
+  gap: 30px;
+}

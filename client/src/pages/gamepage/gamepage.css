@@ -1,0 +1,86 @@
+.game-page-container {
+  display: flex;
+  flex-direction: column;
+
+  gap: 20px;
+  justify-content: center;
+  align-items: center;
+
+  min-height: 100%;
+  background: green;
+}
+
+.game-page-info {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+
+  width: 100%;
+}
+
+.game-page-panel {
+  display: flex;
+  flex-direction: column;
+
+  padding: 10px 10px;
+
+  width: 100%;
+
+  justify-content: center;
+  align-items: center;
+
+  font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+  font-size: 20px;
+  font-weight: 900;
+  /* box-sizing: border-box; */
+
+  border-radius: 5px;
+  background: #f6c96c;
+}
+
+.game-page-label-count {
+  display: flex;
+  flex-direction: column;
+
+  padding: 20px;
+
+  width: fit-content;
+  height: fit-content;
+
+  align-items: center;
+
+  color: white;
+
+  border: 3px solid black;
+  border-radius: 20px;
+  background-color: #393939;
+}
+
+.game-page-label-count-players {
+  display: flex;
+  flex-direction: column;
+
+  padding: 10px;
+  gap: 2px;
+
+  width: 80%;
+  height: fit-content;
+
+  align-items: flex-start;
+
+  color: white;
+
+  font-size: 18px;
+
+  border: 3px solid black;
+  border-radius: 20px;
+  background-color: #393939;
+}
+
+.game-page-map {
+  background-image: url("../../public/img/map");
+  background-repeat: no-repeat;
+  background-size: cover;
+  height: 48rem;
+  width: 100%;
+}

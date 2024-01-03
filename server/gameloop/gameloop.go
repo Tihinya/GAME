@@ -1,4 +1,4 @@
-package gameLoop
+package gameloop
 
 import (
 	"runtime"

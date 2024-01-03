@@ -3,7 +3,6 @@ package statemanager
 type GameState interface {
 	Init()
 	Update(dt float64)
-	Render()
 	Cleanup()
 }
 
@@ -23,11 +22,5 @@ func (sm *StateManager) SetState(name string) {
 func (sm *StateManager) Update(dt float64) {
 	if sm.currentState != nil {
 		sm.currentState.Update(dt)
-	}
-}
-
-func (sm *StateManager) Render() {
-	if sm.currentState != nil {
-		sm.currentState.Render()
 	}
 }

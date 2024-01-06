@@ -1,12 +1,14 @@
-package components
+package managers
 
-import "time"
+import (
+	"time"
+)
 
 type PositionComponent struct {
 	X, Y float64
 }
 type Vec2 struct {
-	X, Y int
+	X, Y float64
 }
 type MotionComponent struct {
 	Velocity     Vec2
@@ -16,6 +18,8 @@ type SpriteComponent struct {
 	Texture string
 }
 type CollisionComponent struct {
+	Enabled bool
+	Size    float64
 }
 type HealthComponent struct {
 	CurrentHealth int
@@ -28,8 +32,13 @@ type TimerComponent struct {
 	Time time.Time
 }
 type PowerUpComponent struct {
+	Id   int
+	Name string
 }
 type DamageComponent struct {
 	DamageAmount int
 	DamageType   string
+}
+type BombComponent struct {
+	BombAmount int
 }

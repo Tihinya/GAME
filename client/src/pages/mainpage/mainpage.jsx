@@ -1,19 +1,31 @@
-import Gachi, { useNavigate } from "../../Gachi.js/src/core/framework";
+import Gachi, {
+  useNavigate,
+  useState,
+} from "../../Gachi.js/src/core/framework";
 import "./mainpage.css";
 import logo from "../../public/img/logo.png";
 
 export default function MenuPage() {
-  const navigate = useNavigate(); // Corrected declaration
+  const navigate = useNavigate();
+
+  const [playerName, setPlayerName] = useState("");
 
   const showWriteName = () => {
     let playButton = document.getElementById("play-button");
     let nameContainer = document.getElementById("name-container");
 
-    // Hide the play button
     playButton.style.display = "none";
 
-    // Show the write name div
     nameContainer.style.display = "flex";
+  };
+
+  const acceptName = () => {
+    const updatedPlayers = {
+      players: [{ name: playerName }],
+    };
+
+    navigate("/lobby");
+    console.log(updatedPlayers);
   };
 
   return (
@@ -29,8 +41,10 @@ export default function MenuPage() {
               className="write-name"
               placeholder="Write your name"
               maxLength="21"
+              value={playerName}
+              onChange={(e) => setPlayerName(e.target.value)}
             />
-            <div className="accept-name" onClick={() => navigate("/lobby")}>
+            <div className="accept-name" onClick={acceptName}>
               Accept
             </div>
           </div>

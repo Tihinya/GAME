@@ -80,7 +80,7 @@ func (m *Manager) GetConnectedClients() Event {
 	var onlineUserList models.ConnectedUserListEvent
 
 	for client := range m.clients {
-		onlineUserList.List = append(onlineUserList.List, client.username)
+		onlineUserList.List[client.id] = client.username
 	}
 
 	return SerializeData(EventOnlineUserList, onlineUserList)
@@ -89,8 +89,8 @@ func (m *Manager) GetConnectedClients() Event {
 func (m *Manager) ServeWS(w http.ResponseWriter, r *http.Request) {
 	// ws://localhost:8080/ws?username=exampleUser
 	username := r.URL.Query().Get("username")
-	if username == "" {
-		log.Printf("failed to get username from user, or username is empty")
+	if username == "" || m.usernameInClients(username) {
+		log.Printf("Failed to set username, username is empty or already taken")
 		return
 	}
 
@@ -111,6 +111,33 @@ func (m *Manager) ServeWS(w http.ResponseWriter, r *http.Request) {
 
 	broadcastClientInfo(m, username)
 	broadcastOnlineUserList(m)
+}
+
+func (m *Manager) usernameInClients(username string) bool {
+	for client := range m.clients {
+		if client.username == username {
+			return true
+		}
+	}
+	return false
+}
+
+func (m *Manager) GetClientById(id int) *Client {
+	for client := range m.clients {
+		if client.id == id {
+			return client
+		}
+	}
+	return nil
+}
+
+func (m *Manager) GetClientByUsername(username string) *Client {
+	for client := range m.clients {
+		if client.username == username {
+			return client
+		}
+	}
+	return nil
 }
 
 func idCounter() int {

@@ -18,7 +18,7 @@ type SendMessageEvent struct {
 }
 
 type ConnectedUserListEvent struct {
-	List []string `json:"list"`
+	List map[int]string `json:"list"`
 }
 
 type ReceivedMessage struct {
@@ -31,4 +31,9 @@ type ReceivedMessage struct {
 type NewMessageEvent struct {
 	SendMessageEvent
 	Sent time.Time `json:"sent"`
+}
+
+type ClientInfo struct {
+	Username string `json:"username"`
+	Id       int    `json:"id"`
 }

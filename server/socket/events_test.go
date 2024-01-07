@@ -27,10 +27,10 @@ func TestWebSocketChat(t *testing.T) {
 	defer user1.Close()
 
 	message := "Hello World!"
-	sendMessage(t, user1, message, "user1") // send message from user id to user id
+	sendMessage(t, user1, message, 1) // send message from user id to user id
 }
 
-func sendMessage(t *testing.T, connection *websocket.Conn, message string, username string) {
+func sendMessage(t *testing.T, connection *websocket.Conn, message string, senderId int) {
 	sendData := &models.SendMessageEvent{
 		ReceiveMessageEvent: models.ReceiveMessageEvent{
 			Message: message,

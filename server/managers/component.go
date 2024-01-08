@@ -6,6 +6,7 @@ import (
 
 type PositionComponent struct {
 	X, Y float64
+	Size float64
 }
 type Vec2 struct {
 	X, Y float64
@@ -19,7 +20,6 @@ type SpriteComponent struct {
 }
 type CollisionComponent struct {
 	Enabled bool
-	Size    float64
 }
 type HealthComponent struct {
 	CurrentHealth int
@@ -41,4 +41,7 @@ type DamageComponent struct {
 }
 type BombComponent struct {
 	BombAmount int
+}
+type ExplosionComponent struct {
+	Rang int
 }

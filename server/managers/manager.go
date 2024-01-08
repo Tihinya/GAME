@@ -15,6 +15,7 @@ type SystemManagers struct {
 	TimerManager     *TimerManager
 	DamageManager    *DamageManager
 	BombManager      *BombManager
+	ExplosionManager *ExplosionManager
 }
 
 type EntityManager struct {
@@ -50,6 +51,9 @@ type DamageManager struct {
 }
 type BombManager struct {
 	bombs map[*Entity]*BombComponent
+}
+type ExplosionManager struct {
+	explosions map[*Entity]*ExplosionComponent
 }
 
 // --------------------------------
@@ -106,11 +110,15 @@ func NewBombManager() *BombManager {
 		bombs: make(map[*Entity]*BombComponent),
 	}
 }
-
 func NewEntityManager() *EntityManager {
 	return &EntityManager{
 		entities: make([]*Entity, 0),
 		Id:       1,
+	}
+}
+func NewExplosionManager() *ExplosionManager {
+	return &ExplosionManager{
+		explosions: make(map[*Entity]*ExplosionComponent),
 	}
 }
 
@@ -232,6 +240,18 @@ func (bombManager *BombManager) AddComponet(entity *Entity, component *BombCompo
 
 func (bombManager *BombManager) DeleteComponet(entity *Entity, component *BombComponent) {
 	delete(bombManager.bombs, entity)
+}
+
+// --------------------------------
+// Explosion
+// --------------------------------
+
+func (explosionManager *ExplosionManager) AddComponet(entity *Entity, component *ExplosionComponent) {
+	explosionManager.explosions[entity] = component
+}
+
+func (explosionManager *ExplosionManager) DeleteComponet(entity *Entity, component *ExplosionComponent) {
+	delete(explosionManager.explosions, entity)
 }
 
 func (em *EntityManager) CreateEntity() *Entity {

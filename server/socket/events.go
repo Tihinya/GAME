@@ -24,7 +24,7 @@ type Event struct {
 type EventHandler func(event Event, c *Client) error
 
 func SendMessageHandler(event Event, c *Client) error {
-	var chatEvent models.ReceiveMessageEvent
+	var chatEvent models.SendMessageEvent
 	if err := json.Unmarshal(event.Payload, &chatEvent); err != nil {
 		return fmt.Errorf("bad payload in request: %v", err)
 	}
@@ -34,17 +34,11 @@ func SendMessageHandler(event Event, c *Client) error {
 		return nil
 	}
 
-	sender := c.id
-	recipient := chatEvent.ReceiverID
+	var broadMessage models.SendMessageEvent
 
-	if recipient == sender {
-		return fmt.Errorf("error: failed to send messages to yourself")
-	}
-	var broadMessage models.NewMessageEvent
-
-	broadMessage.Sent = time.Now()
+	broadMessage.SentTime = time.Now()
 	broadMessage.Message = chatEvent.Message
-	broadMessage.SenderID = sender
+	broadMessage.SenderID = c.id
 
 	data, err := json.Marshal(broadMessage)
 	if err != nil {
@@ -57,9 +51,7 @@ func SendMessageHandler(event Event, c *Client) error {
 	}
 
 	for client := range c.manager.clients {
-		if client.id == recipient || client.id == sender {
-			client.egress <- outgoingEvent
-		}
+		client.egress <- outgoingEvent
 	}
 
 	return nil
@@ -68,9 +60,11 @@ func SendMessageHandler(event Event, c *Client) error {
 func broadcastClientInfo(m *Manager, username string) {
 	m.Lock()
 	defer m.Unlock()
-	clientInfo := m.GetConnectedClient(username)
+	clientInfoEvent := m.GetConnectedClient(username)
 	for client := range m.clients {
-		client.egress <- clientInfo
+		if client.username == username {
+			client.egress <- clientInfoEvent
+		}
 	}
 }
 

@@ -3,11 +3,11 @@ package socket
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"log"
 	"net/http"
 	"sync"
 
+	"bomberman-dom/helpers"
 	"bomberman-dom/models"
 
 	"github.com/gorilla/websocket"
@@ -65,19 +65,30 @@ func (m *Manager) removeClient(client *Client) {
 	defer m.Unlock()
 
 	if _, ok := m.clients[client]; ok {
-		m.Lock()
-		defer m.Unlock()
 		client.connection.Close()
 		delete(m.clients, client)
 	}
 }
 
 func (m *Manager) GetConnectedClient(username string) Event {
-	return Event{}
+	var clientInfo models.ClientInfo
+
+	for client := range m.clients {
+		if client.username == username {
+			clientInfo = models.ClientInfo{
+				Username: username,
+				Id:       client.id,
+			}
+			break
+		}
+	}
+
+	return SerializeData(ClientInfoMessage, clientInfo)
 }
 
 func (m *Manager) GetConnectedClients() Event {
 	var onlineUserList models.ConnectedUserListEvent
+	onlineUserList.List = make(map[int]string)
 
 	for client := range m.clients {
 		onlineUserList.List[client.id] = client.username
@@ -90,7 +101,9 @@ func (m *Manager) ServeWS(w http.ResponseWriter, r *http.Request) {
 	// ws://localhost:8080/ws?username=exampleUser
 	username := r.URL.Query().Get("username")
 	if username == "" || m.usernameInClients(username) {
-		log.Printf("Failed to set username, username is empty or already taken")
+		helpers.ReturnMessageJSON(w,
+			"Username is empty or already taken",
+			http.StatusBadRequest, "Error")
 		return
 	}
 
@@ -99,6 +112,9 @@ func (m *Manager) ServeWS(w http.ResponseWriter, r *http.Request) {
 	conn, err := websocketUpgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println(err)
+		helpers.ReturnMessageJSON(w,
+			"Could not upgrade to websocket connection, internal error",
+			http.StatusInternalServerError, "Error")
 		return
 	}
 
@@ -146,16 +162,15 @@ func idCounter() int {
 }
 
 func SerializeData(EventType string, data ...any) Event {
-	fmt.Println(data)
 	if len(data) == 1 {
-		jsonData, err := json.Marshal(data)
+		jsonData, err := json.Marshal(data[0])
 		if err != nil {
 			log.Printf("failed to marshal online user list: %v", err)
 		}
 
 		var outgoingEvent Event
 		outgoingEvent.Payload = jsonData
-		outgoingEvent.Type = EventOnlineUserList
+		outgoingEvent.Type = EventType
 
 		return outgoingEvent
 	}

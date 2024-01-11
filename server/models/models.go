@@ -2,17 +2,10 @@ package models
 
 import "time"
 
-type ReadMessageHistoryEvent struct {
-	ReceiverID int `json:"receiver_id"`
-}
-
-type ReceiveMessageEvent struct {
-	Message    string `json:"message"`
-	ReceiverID int    `json:"receiver_id"`
-}
+//-- Socket Events --\\
 
 type SendMessageEvent struct {
-	ReceiveMessageEvent
+	Message  string    `json:"message"`
 	SenderID int       `json:"sender_id"`
 	SentTime time.Time `json:"sent_time"`
 }
@@ -28,12 +21,15 @@ type ReceivedMessage struct {
 	Sent       time.Time `json:"sent_time"`
 }
 
-type NewMessageEvent struct {
-	SendMessageEvent
-	Sent time.Time `json:"sent"`
-}
-
 type ClientInfo struct {
 	Username string `json:"username"`
 	Id       int    `json:"id"`
+}
+
+//-- Miscellaneous --\\
+
+// HTTP JSON response
+type Response struct {
+	Status  string `json:"status"`
+	Message string `json:"message,omitempty"`
 }

@@ -26,6 +26,8 @@ func TestMovmentSystem(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		inputSystem.update(time.Now())
 		motionSystem.update(time.Now())
+		healthSystem.update(time.Now())
+		powerUpSystem.update(time.Now())
 	}
 	fmt.Println(playerPosition)
 }

@@ -4,6 +4,8 @@ import (
 	"time"
 )
 
+var fuseTime = time.Second * 500
+
 // --------------------------------
 // Createing Managers
 // --------------------------------
@@ -15,7 +17,7 @@ var inputManager = NewInputManager()
 var timerManager = NewTimerManager()
 var bombManager = NewBombManager()
 var explosionManager = NewExplosionManager()
-var collectionManager = NewCollisionManager()
+var collisionManager = NewCollisionManager()
 var powerUpManager = NewPowerUpManager()
 var damageManager = NewDamageManager()
 var healthManager = NewHealthManager()
@@ -24,15 +26,17 @@ var healthManager = NewHealthManager()
 // Createing Systems
 // --------------------------------
 
-var positionSystem = NewPositionSystem()
 var motionSystem = NewMotionSystem()
-var healthSystem = NewHealthSystem()
 var inputSystem = NewInputSystem()
-var timerSystem = NewTimerSystem()
 var powerUpSystem = NewPowerUpSystem()
-var damageSystem = NewDamageSystem()
-var bombSystem = NewBombSystem()
-var explosionSystem = NewExplosionSystem()
+var healthSystem = NewHealthSystem()
+
+// var positionSystem = NewPositionSystem()
+
+// var timerSystem = NewTimerSystem()
+// var damageSystem = NewDamageSystem()
+// var bombSystem = NewBombSystem()
+// var explosionSystem = NewExplosionSystem()
 
 func (mv *MotionSystem) update(dt time.Time) {
 	for e, mc := range mv.manager.motions {
@@ -46,7 +50,7 @@ func (mv *MotionSystem) update(dt time.Time) {
 		mc.Velocity.X += mc.Acceleration.X
 		mc.Velocity.Y += mc.Acceleration.Y
 
-		if DetectCollisionSystem(e) {
+		if DetectCollision(e) {
 			pc.X -= mc.Velocity.X
 			pc.Y -= mc.Velocity.Y
 
@@ -58,10 +62,8 @@ func (mv *MotionSystem) update(dt time.Time) {
 
 func (is *InputSystem) update(dt time.Time) {
 	for e, ic := range is.manager.inputs {
-		mc, exists := motionManager.motions[e]
-		if !exists {
-			return
-		}
+		mc := motionManager.motions[e]
+		bc, exists := bombManager.bombs[e]
 		if ic.Input[Up] {
 			mc.Velocity.Y = -Speed
 		}
@@ -74,7 +76,13 @@ func (is *InputSystem) update(dt time.Time) {
 		if ic.Input[Right] {
 			mc.Velocity.X = Speed
 		}
+		if exists && ic.Input[Space] && len(bc.PutedBomb) < bc.BombAmount {
+			bomb := CreateBobm(e)
+			if DetectCollision(bomb, e) {
+				delete(positionManager.postions, bomb)
+			}
 
+		}
 	}
 }
 
@@ -106,6 +114,12 @@ func (pus *PowerUpSystem) update(dt time.Time) {
 
 }
 
+// func (ex *ExplosionSystem) update(dt time.Time) {
+// 	for e, ec := range ex.manager.explosions {
+
+// 	}
+// }
+
 // func explosionSystem(entity *Entity, system *SystemManagers) {
 // 	timer := entity.getTimer(system)
 // 	if timer == nil {
@@ -122,19 +136,26 @@ func (pus *PowerUpSystem) update(dt time.Time) {
 // 	}
 // }
 
-func DetectCollisionSystem(entity *Entity) bool {
+func DetectCollision(entity *Entity, ignoreList ...*Entity) bool {
 	pc1 := positionManager.postions[entity]
 
 	for _, e2 := range entityManager.entities {
-		if entity == e2 {
+		if entity == e2 && contains(ignoreList, entity) {
 			continue
 		}
+
 		pc2 := positionManager.postions[e2]
+		collides := pc1.X < pc2.X+pc2.Size && pc1.X+pc2.Size > pc2.X && pc1.Y < pc2.Y+pc2.Size && pc1.Y+pc1.Size > pc2.Y
+		return collides
+	}
+	return false
+}
 
-		// x1 < x2 + siz2 && x1 +siz1 > x2 && y1 <y2+siz2 && y1+siz1 >y2
-
-		return pc1.X < pc2.X+pc2.Size && pc1.X+pc2.Size > pc2.X && pc1.Y < pc2.Y+pc2.Size && pc1.Y+pc1.Size > pc2.Y
-
+func contains[T comparable](itemArray []T, item T) bool {
+	for _, it := range itemArray {
+		if it == item {
+			return true
+		}
 	}
 	return false
 }

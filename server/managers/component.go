@@ -32,16 +32,15 @@ type TimerComponent struct {
 	Time time.Time
 }
 type PowerUpComponent struct {
-	Id   int
 	Name string
 }
 type DamageComponent struct {
 	DamageAmount int
-	DamageType   string
 }
 type BombComponent struct {
+	PutedBomb  map[*Entity]bool
 	BombAmount int
 }
 type ExplosionComponent struct {
-	Rang int
+	Range int
 }

@@ -273,8 +273,8 @@ func DeleteAllEntityComponents(e *Entity) {
 		delete(motionManager.motions, e)
 	}
 
-	if _, exists := collectionManager.collisions[e]; exists {
-		delete(collectionManager.collisions, e)
+	if _, exists := collisionManager.collisions[e]; exists {
+		delete(collisionManager.collisions, e)
 	}
 
 	if _, exists := healthManager.healths[e]; exists {

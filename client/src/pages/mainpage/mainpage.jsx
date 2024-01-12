@@ -7,8 +7,10 @@ import logo from "../../public/img/logo.png";
 
 export default function MenuPage() {
   const navigate = useNavigate();
-
   const [playerName, setPlayerName] = useState("");
+  const [playersData, setPlayersData] = useState({
+    players: [],
+  });
 
   const showWriteName = () => {
     let playButton = document.getElementById("play-button");
@@ -20,12 +22,16 @@ export default function MenuPage() {
   };
 
   const acceptName = () => {
-    const updatedPlayers = {
-      players: [{ name: playerName }],
-    };
+    // Update the JSON object with the entered name
+    setPlayersData((prevData) => ({
+      ...prevData,
+      players: [...prevData.players, { name: playerName }],
+    }));
 
+    // Navigate to the lobby
     navigate("/lobby");
-    console.log(updatedPlayers);
+    console.log(playersData);
+    console.log(playerName);
   };
 
   return (

@@ -13,7 +13,7 @@ const GameComponent = () => {
     const key = event.code;
 
     if (keysPressed.hasOwnProperty(key)) {
-      if (event.code === "Space") {
+      if (event.code === "Space" || "keyW" || "KeyA" || "KeyS" || "KeyD") {
         event.preventDefault();
       }
 

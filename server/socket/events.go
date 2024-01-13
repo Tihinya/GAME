@@ -10,10 +10,16 @@ import (
 )
 
 const (
-	EventSendMessage    = "send_message"
-	EventOnlineUserList = "online_users_list"
-	EventReceiveMessage = "receive_message"
-	ClientInfoMessage   = "client_info"
+	EventSendMessage       = "send_message"      // Event for sending messages
+	EventOnlineUserList    = "online_users_list" // Event for receiving connected user list
+	EventReceiveMessage    = "receive_message"   // Event for receiving messages
+	EventClientInfoMessage = "client_info"       // Displays username, id on user connect
+	GameEventNotification  = "game_notification" // For backend error logs (maybe?)
+	GameEventMovePlayer    = "game_move"         // Move - up, down, left, right
+	GameEventGameState     = "game_state"        // State - lobby, start, end
+	GameEventBomb          = "game_bomb"         // Bomb - place, explode
+	GameEventObstacle      = "game_obstacle"     // Obstacles - boxes, powerups
+	GameEventPowerup       = "game_powerup"      // Powerup - pickup
 )
 
 type Event struct {

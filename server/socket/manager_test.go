@@ -167,7 +167,7 @@ func receiveMessage(t *testing.T, connection *websocket.Conn, receiveType string
 					return
 				}
 
-			case socket.ClientInfoMessage:
+			case socket.EventClientInfoMessage:
 				if receiveType == "client_info" {
 					var clientInfo models.ClientInfo
 					if err := json.Unmarshal(event.Payload, &clientInfo); err != nil {

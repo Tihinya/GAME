@@ -1,41 +1,45 @@
-import Gachi, { useEffect, useState } from "../Gachi.js/src/core/framework.ts";
+import Gachi, { useEffect, useState } from "../Gachi.js/src/core/framework";
 
 const GameComponent = () => {
   const [keysPressed, setKeysPressed] = useState({
-    KeyW: true,
-    KeyA: true,
-    KeyS: true,
-    KeyD: true,
-    Space: true,
+    KeyW: false,
+    KeyA: false,
+    KeyS: false,
+    KeyD: false,
+    Space: false,
   });
 
   const handleKeyDown = (event) => {
     const key = event.code;
 
     if (keysPressed.hasOwnProperty(key)) {
-      if (event.code === "Space" || "keyW" || "KeyA" || "KeyS" || "KeyD") {
+      if (event.code) {
         event.preventDefault();
       }
 
-      setKeysPressed((prevKeys) => ({ ...prevKeys, [key]: false }));
-      // Send JSON to backend
-      sendKeysToBackend();
+      setKeysPressed((prevKeys) => {
+        const updatedKeys = { ...prevKeys, [key]: true };
+        sendKeysToBackend(updatedKeys);
+        return updatedKeys;
+      });
     }
   };
 
   const handleKeyUp = (event) => {
     const key = event.code;
     if (keysPressed.hasOwnProperty(key)) {
-      setKeysPressed((prevKeys) => ({ ...prevKeys, [key]: true }));
-
-      sendKeysToBackend();
+      setKeysPressed((prevKeys) => {
+        const updatedKeys = { ...prevKeys, [key]: false };
+        sendKeysToBackend(updatedKeys);
+        return updatedKeys;
+      });
     }
   };
 
-  const sendKeysToBackend = () => {
-    const jsonToSend = JSON.stringify(keysPressed);
-
+  const sendKeysToBackend = (updatedKeys) => {
+    const jsonToSend = JSON.stringify(updatedKeys);
     console.log(jsonToSend);
+    // Send jsonToSend to the backend
   };
 
   useEffect(() => {

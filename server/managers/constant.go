@@ -74,10 +74,10 @@ func CreateBobm(player *Entity) *Entity {
 	return bomb
 }
 
-func CreateExplosion() *Entity {
+func CreateExplosion(positionComponent *PositionComponent) *Entity {
 	explosion := entityManager.CreateEntity()
 
-	explosionPosition := &PositionComponent{}
+	explosionPosition := positionComponent
 	explosionTimer := &TimerComponent{time.Now().Add(fuseTime)}
 	explosionDamage := &DamageComponent{DamageAmount: explosionDamage}
 	timerManager.AddComponet(explosion, explosionTimer)

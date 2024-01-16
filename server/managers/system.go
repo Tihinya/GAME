@@ -31,9 +31,6 @@ var inputSystem = NewInputSystem()
 var powerUpSystem = NewPowerUpSystem()
 var healthSystem = NewHealthSystem()
 
-// var positionSystem = NewPositionSystem()
-
-// var timerSystem = NewTimerSystem()
 // var damageSystem = NewDamageSystem()
 // var bombSystem = NewBombSystem()
 // var explosionSystem = NewExplosionSystem()
@@ -114,27 +111,38 @@ func (pus *PowerUpSystem) update(dt time.Time) {
 
 }
 
-// func (ex *ExplosionSystem) update(dt time.Time) {
-// 	for e, ec := range ex.manager.explosions {
+func (ex *ExplosionSystem) update(dt time.Time) {
+	for e := range bombManager.bombs {
+		ec := explosionManager.explosions[e]
+		tc := timerManager.timers[e]
+		pc := positionManager.postions[e]
+		if !tc.Time.Before(time.Now()) {
+			continue
+		}
+		CreateExplosion(pc)
+		for i := 1; i <= ec.Range; i++ {
+			// var expolions []*PositionComponent
+			// pcRight := &PositionComponent{pc.X + float64(i), pc.Y, pc.Size + float64(i)}
+			// pcUp := &PositionComponent{pc.X, pc.Y + float64(i), pc.Size + float64(i)}
+			// pcLeft := &PositionComponent{pc.X - float64(i), pc.Y, pc.Size + float64(i)}
+			// pcDown := &PositionComponent{pc.X, pc.Y - float64(i), pc.Size + float64(i)}
+			// expolionComponets := append(expolions, pcUp)
+			// expolionComponets = append(expolions, pcDown)
+			// expolionComponets = append(expolions, pcLeft)
+			// expolionComponets = append(expolions, pcRight)
+			// for i2, pc2 := range expolionComponets {
+			// 	CreateExplosion(pc2)
+			// 	for e2, hc := range collisionManager.collisions {
+			// 		if DetectCollision(bomb, e) {
+			// 			delete(positionManager.postions, bomb)
+			// 		}
 
-// 	}
-// }
+			// 	}
+			// }
 
-// func explosionSystem(entity *Entity, system *SystemManagers) {
-// 	timer := entity.getTimer(system)
-// 	if timer == nil {
-// 		return
-// 	}
-// 	if !timer.Time.Before(time.Now()) {
-// 		return
-// 	}
-
-// 	for entity2 := range system.DamageManager.damages {
-// 		if entity != entity2 {
-// 			fmt.Println("df")
-// 		}
-// 	}
-// }
+		}
+	}
+}
 
 func DetectCollision(entity *Entity, ignoreList ...*Entity) bool {
 	pc1 := positionManager.postions[entity]

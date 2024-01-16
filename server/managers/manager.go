@@ -93,12 +93,6 @@ type ExplosionSystem struct {
 // Createing systems
 // --------------------------------
 
-func NewPositionSystem() *PositionSystem {
-	return &PositionSystem{
-		manager: positionManager,
-	}
-}
-
 func NewMotionSystem() *MotionSystem {
 	return &MotionSystem{
 		manager: motionManager,
@@ -114,12 +108,6 @@ func NewHealthSystem() *HealthSystem {
 func NewInputSystem() *InputSystem {
 	return &InputSystem{
 		manager: inputManager,
-	}
-}
-
-func NewTimerSystem() *TimerSystem {
-	return &TimerSystem{
-		manager: timerManager,
 	}
 }
 

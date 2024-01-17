@@ -1,5 +1,6 @@
 import Gachi, { useNavigate } from "../../Gachi.js/src/core/framework";
 import "./gamepage.css";
+import GameComponent from "../../modules/commandEvents";
 
 export default function GamePage() {
   return (
@@ -27,7 +28,9 @@ export default function GamePage() {
           <div className="game-page-label-count">2</div>
         </div>
       </div>
-      <div className="game-page-map"></div>
+      <div className="game-page-map">
+        <GameComponent />
+      </div>
     </div>
   );
 }

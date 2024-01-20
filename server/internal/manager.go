@@ -9,7 +9,7 @@ type EntityManager struct {
 	Id       int
 }
 type PositionManager struct {
-	postions map[*Entity]*PositionComponent
+	positions map[*Entity]*PositionComponent
 }
 type MotionManager struct {
 	motions map[*Entity]*MotionComponent
@@ -30,7 +30,7 @@ type TimerManager struct {
 	timers map[*Entity]*TimerComponent
 }
 type PowerUpManager struct {
-	powerUps map[*Entity][]*PowerUpComponent
+	powerUps map[*Entity]*PowerUpComponent
 }
 type DamageManager struct {
 	damages map[*Entity]*DamageComponent
@@ -141,68 +141,79 @@ func NewExplosionSystem() *ExplosionSystem {
 
 func NewPositionManager() *PositionManager {
 	return &PositionManager{
-		postions: make(map[*Entity]*PositionComponent),
+		positions: make(map[*Entity]*PositionComponent),
 	}
 }
+
 func NewSpriteManager() *SpriteManager {
 	return &SpriteManager{
 		sprites: make(map[*Entity]*SpriteComponent),
 	}
 }
+
 func NewMotionManager() *MotionManager {
 	return &MotionManager{
 		motions: make(map[*Entity]*MotionComponent),
 	}
 }
+
 func NewCollisionManager() *CollisionManager {
 	return &CollisionManager{
 		collisions: make(map[*Entity]*CollisionComponent),
 	}
 }
+
 func NewHealthManager() *HealthManager {
 	return &HealthManager{
 		healths: make(map[*Entity]*HealthComponent),
 	}
 }
+
 func NewInputManager() *InputManager {
 	return &InputManager{
 		inputs: make(map[*Entity]*InputComponent),
 	}
 }
+
 func NewTimerManager() *TimerManager {
 	return &TimerManager{
 		timers: make(map[*Entity]*TimerComponent),
 	}
 }
+
 func NewPowerUpManager() *PowerUpManager {
 	return &PowerUpManager{
-		powerUps: make(map[*Entity][]*PowerUpComponent),
+		powerUps: make(map[*Entity]*PowerUpComponent),
 	}
 }
+
 func NewDamageManager() *DamageManager {
 	return &DamageManager{
 		damages: make(map[*Entity]*DamageComponent),
 	}
 }
+
 func NewBombManager() *BombManager {
 	return &BombManager{
 		bombs: make(map[*Entity]*BombComponent),
 	}
 }
+
 func NewEntityManager() *EntityManager {
 	return &EntityManager{
 		entities: make([]*Entity, 0),
 		Id:       1,
 	}
 }
+
 func NewExplosionManager() *ExplosionManager {
 	return &ExplosionManager{
 		explosions: make(map[*Entity]*ExplosionComponent),
 	}
 }
 
-func (positionManager *PositionManager) AddComponet(entity *Entity, component *PositionComponent) {
-	positionManager.postions[entity] = component
+func (positionManager *PositionManager) AddComponent(entity *Entity, component *PositionComponent) {
+	positionManager.positions[entity] = component
 }
 
 func (spriteManager *SpriteManager) AddComponent(entity *Entity, component *SpriteComponent) {
@@ -221,27 +232,27 @@ func (healthManager *HealthManager) AddComponent(entity *Entity, component *Heal
 	healthManager.healths[entity] = component
 }
 
-func (inputManager *InputManager) AddComponet(entity *Entity, component *InputComponent) {
+func (inputManager *InputManager) AddComponent(entity *Entity, component *InputComponent) {
 	inputManager.inputs[entity] = component
 }
 
-func (timerManager *TimerManager) AddComponet(entity *Entity, component *TimerComponent) {
+func (timerManager *TimerManager) AddComponent(entity *Entity, component *TimerComponent) {
 	timerManager.timers[entity] = component
 }
 
-func (powerUpManager *PowerUpManager) AddComponet(entity *Entity, component *PowerUpComponent) {
-	powerUpManager.powerUps[entity] = append(powerUpManager.powerUps[entity], component)
+func (powerUpManager *PowerUpManager) AddComponent(entity *Entity, component *PowerUpComponent) {
+	powerUpManager.powerUps[entity] = component
 }
 
-func (damageManager *DamageManager) AddComponet(entity *Entity, component *DamageComponent) {
+func (damageManager *DamageManager) AddComponent(entity *Entity, component *DamageComponent) {
 	damageManager.damages[entity] = component
 }
 
-func (bombManager *BombManager) AddComponet(entity *Entity, component *BombComponent) {
+func (bombManager *BombManager) AddComponent(entity *Entity, component *BombComponent) {
 	bombManager.bombs[entity] = component
 }
 
-func (explosionManager *ExplosionManager) AddComponet(entity *Entity, component *ExplosionComponent) {
+func (explosionManager *ExplosionManager) AddComponent(entity *Entity, component *ExplosionComponent) {
 	explosionManager.explosions[entity] = component
 }
 
@@ -253,43 +264,14 @@ func (em *EntityManager) CreateEntity() *Entity {
 }
 
 func DeleteAllEntityComponents(e *Entity) {
-	if _, exists := positionManager.postions[e]; exists {
-		delete(positionManager.postions, e)
-	}
-
-	if _, exists := motionManager.motions[e]; exists {
-		delete(motionManager.motions, e)
-	}
-
-	if _, exists := collisionManager.collisions[e]; exists {
-		delete(collisionManager.collisions, e)
-	}
-
-	if _, exists := healthManager.healths[e]; exists {
-		delete(healthManager.healths, e)
-	}
-
-	if _, exists := inputManager.inputs[e]; exists {
-		delete(inputManager.inputs, e)
-	}
-
-	if _, exists := timerManager.timers[e]; exists {
-		delete(timerManager.timers, e)
-	}
-
-	if _, exists := powerUpManager.powerUps[e]; exists {
-		delete(powerUpManager.powerUps, e)
-	}
-
-	if _, exists := damageManager.damages[e]; exists {
-		delete(damageManager.damages, e)
-	}
-
-	if _, exists := bombManager.bombs[e]; exists {
-		delete(bombManager.bombs, e)
-	}
-
-	if _, exists := explosionManager.explosions[e]; exists {
-		delete(explosionManager.explosions, e)
-	}
+	delete(positionManager.positions, e)
+	delete(motionManager.motions, e)
+	delete(collisionManager.collisions, e)
+	delete(healthManager.healths, e)
+	delete(inputManager.inputs, e)
+	delete(timerManager.timers, e)
+	delete(powerUpManager.powerUps, e)
+	delete(damageManager.damages, e)
+	delete(bombManager.bombs, e)
+	delete(explosionManager.explosions, e)
 }

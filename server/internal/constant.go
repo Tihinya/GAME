@@ -47,14 +47,12 @@ func CreatePlayer() *Entity {
 	playerMotion := &MotionComponent{Velocity: Vec2{X: 0, Y: 0}, Acceleration: Vec2{X: 0, Y: 0}}
 	playerInput := &InputComponent{Input: map[string]bool{}}
 	playerHealth := &HealthComponent{CurrentHealth: playerMaxHealth, MaxHealth: playerMaxHealth}
-	playerExposion := &ExplosionComponent{Range: defaultExplosionRange}
 	playerPowerUps := &PowerUpComponent{ExtraBombs: 0, ExtraExplosionRange: 0, ExtraSpeed: 0}
 
 	positionManager.AddComponent(player, playerPosition)
 	motionManager.AddComponent(player, playerMotion)
 	inputManager.AddComponent(player, playerInput)
 	healthManager.AddComponent(player, playerHealth)
-	explosionManager.AddComponent(player, playerExposion)
 	powerUpManager.AddComponent(player, playerPowerUps)
 
 	return player
@@ -63,8 +61,7 @@ func CreatePlayer() *Entity {
 func CreateBomb(player *Entity) *Entity {
 	var playerActiveBombs int
 
-	pc := positionManager.positions[player]
-	ec := explosionManager.explosions[player]
+	pc := positionManager.GetPosition(player)
 	puc := powerUpManager.powerUps[player]
 
 	for _, bc := range bombManager.bombs {
@@ -80,26 +77,24 @@ func CreateBomb(player *Entity) *Entity {
 	bomb := entityManager.CreateEntity()
 
 	bombComponent := &BombComponent{
-		BlastRadius: ec.Range + puc.ExtraExplosionRange,
+		BlastRadius: defaultExplosionRange + puc.ExtraExplosionRange,
 		IsActive:    true,
 		Owner:       player,
 	}
 	bombPosition := &PositionComponent{X: pc.X, Y: pc.Y, Size: pc.Size}
 	bombCollision := &CollisionComponent{Enabled: false}
 	bombTimer := &TimerComponent{time.Now().Add(fuseTime)}
-	bombExplosion := &ExplosionComponent{Range: ec.Range}
 
 	collisionManager.AddComponent(bomb, bombCollision)
 	timerManager.AddComponent(bomb, bombTimer)
 	positionManager.AddComponent(bomb, bombPosition)
-	explosionManager.AddComponent(bomb, bombExplosion)
 	bombManager.AddComponent(bomb, bombComponent)
 
 	return bomb
 }
 
 func SpreadExplosion(e *Entity) {
-	pc := positionManager.positions[e]
+	pc := positionManager.GetPosition(e)
 	bc := bombManager.bombs[e]
 	// Create an explosion at the bomb's position
 	createExplosionAtPosition(pc.X, pc.Y)
@@ -122,6 +117,7 @@ func CreateExplosion(positionComponent *PositionComponent) {
 
 	explosion := entityManager.CreateEntity()
 
+	explosionComponent := &ExplosionComponent{}
 	explosionPosition := positionComponent
 	explosionTimer := &TimerComponent{time.Now().Add(explodeTime)}
 	explosionDamage := &DamageComponent{DamageAmount: explosionDamage}
@@ -129,6 +125,7 @@ func CreateExplosion(positionComponent *PositionComponent) {
 	timerManager.AddComponent(explosion, explosionTimer)
 	positionManager.AddComponent(explosion, explosionPosition)
 	damageManager.AddComponent(explosion, explosionDamage)
+	explosionManager.AddComponent(explosion, explosionComponent)
 }
 
 func CreatePowerUp(powerUpName string) *Entity {

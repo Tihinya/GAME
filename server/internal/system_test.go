@@ -72,7 +72,7 @@ func TestBombPlacingAndDetonation(t *testing.T) {
 
 	bombTimer := timerManager.timers[bomb]
 	if bombTimer != nil && time.Now().Before(bombTimer.Time) {
-		fmt.Printf("STAGE 2: Bomb %v has not exploded in 100ms\n", bomb.Id)
+		fmt.Printf("STAGE 2: Bomb %v has not exploded in %v\n", bomb.Id, initialCheckTime)
 	} else {
 		t.Errorf("STAGE 2: Bomb %v has exploded", bomb.Id)
 	}
@@ -88,25 +88,44 @@ func TestBombPlacingAndDetonation(t *testing.T) {
 
 	spreadPositions := getExplosionSpreadPositions(bomb)
 	for _, pos := range spreadPositions {
-		//if !explosionExistsAt(pos) {
-		//	t.Errorf("STAGE 2 FAILED: No explosion found at (X: %v, Y: %v)", pos.X, pos.Y)
-		//}
-		fmt.Println(pos)
+		if !explosionExistsAt(pos) {
+			t.Errorf("STAGE 2 FAILED: No explosion found at (X: %v, Y: %v)", pos.X, pos.Y)
+		}
 	}
 }
 
 func getExplosionSpreadPositions(e *Entity) []PositionComponent {
 	var positions []PositionComponent
 	bc := bombManager.bombs[e]
-	bombPos := positionManager.positions[e]
+	bombPos := positionManager.GetPosition(e)
 
 	// Spread the explosion in each direction and collect the positions
 	for i := 1; i <= bc.BlastRadius; i++ {
-		positions = append(positions, PositionComponent{X: bombPos.X + float64(i), Y: bombPos.Y}) // Right
-		positions = append(positions, PositionComponent{X: bombPos.X - float64(i), Y: bombPos.Y}) // Left
-		positions = append(positions, PositionComponent{X: bombPos.X, Y: bombPos.Y + float64(i)}) // Up
-		positions = append(positions, PositionComponent{X: bombPos.X, Y: bombPos.Y - float64(i)}) // Down
+		positions = append(positions, PositionComponent{
+			X: bombPos.X + float64(i), Y: bombPos.Y, Size: 1,
+		}) // Right
+		positions = append(positions, PositionComponent{
+			X: bombPos.X - float64(i), Y: bombPos.Y, Size: 1,
+		}) // Left
+		positions = append(positions, PositionComponent{
+			X: bombPos.X, Y: bombPos.Y + float64(i), Size: 1,
+		}) // Up
+		positions = append(positions, PositionComponent{
+			X: bombPos.X, Y: bombPos.Y - float64(i), Size: 1,
+		}) // Down
 	}
 
 	return positions
+}
+
+func explosionExistsAt(pos PositionComponent) bool {
+	for _, e := range entityManager.entities {
+		if explosionManager.GetExplosion(e) != nil {
+			pc := positionManager.GetPosition(e)
+			if pc.X == pos.X && pc.Y == pos.Y {
+				return true
+			}
+		}
+	}
+	return false
 }

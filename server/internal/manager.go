@@ -1,5 +1,7 @@
 package internal
 
+import "sync"
+
 // --------------------------------
 // Managers Structs
 // --------------------------------
@@ -7,9 +9,11 @@ package internal
 type EntityManager struct {
 	entities []*Entity
 	Id       int
+	mutex    sync.RWMutex
 }
 type PositionManager struct {
 	positions map[*Entity]*PositionComponent
+	mutex     sync.RWMutex
 }
 type MotionManager struct {
 	motions map[*Entity]*MotionComponent
@@ -40,6 +44,7 @@ type BombManager struct {
 }
 type ExplosionManager struct {
 	explosions map[*Entity]*ExplosionComponent
+	mutex      sync.RWMutex
 }
 
 // --------------------------------
@@ -257,10 +262,38 @@ func (explosionManager *ExplosionManager) AddComponent(entity *Entity, component
 }
 
 func (em *EntityManager) CreateEntity() *Entity {
+	em.mutex.Lock()
+	defer em.mutex.Unlock()
 	entity := &Entity{Id: em.Id}
 	em.entities = append(em.entities, entity)
 	em.Id++
 	return entity
+}
+
+// Use RLock and RUnlock for read access
+func (m *PositionManager) GetPosition(entity *Entity) *PositionComponent {
+	m.mutex.RLock()
+	defer m.mutex.RUnlock()
+	return m.positions[entity]
+}
+
+// Use Lock and Unlock for write access
+func (m *PositionManager) SetPosition(entity *Entity, position *PositionComponent) {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+	m.positions[entity] = position
+}
+
+func (m *ExplosionManager) GetExplosion(entity *Entity) *ExplosionComponent {
+	m.mutex.RLock()
+	defer m.mutex.RUnlock()
+	return m.explosions[entity]
+}
+
+func (m *ExplosionManager) SetExplosion(entity *Entity, explosion *ExplosionComponent) {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+	m.explosions[entity] = explosion
 }
 
 func DeleteAllEntityComponents(e *Entity) {

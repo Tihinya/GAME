@@ -45,5 +45,6 @@ type BombComponent struct {
 	Owner       *Entity
 }
 type ExplosionComponent struct {
-	Range int
+	// doesn't need any attributes,
+	// just for identifying explosions
 }

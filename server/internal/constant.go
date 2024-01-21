@@ -66,6 +66,7 @@ func CreateBomb(player *Entity) *Entity {
 	pc := positionManager.positions[player]
 	ec := explosionManager.explosions[player]
 	puc := powerUpManager.powerUps[player]
+
 	for _, bc := range bombManager.bombs {
 		if bc.Owner == player {
 			playerActiveBombs++
@@ -97,12 +98,14 @@ func CreateBomb(player *Entity) *Entity {
 	return bomb
 }
 
-func SpreadExplosion(pc *PositionComponent, puc *PowerUpComponent) {
+func SpreadExplosion(e *Entity) {
+	pc := positionManager.positions[e]
+	bc := bombManager.bombs[e]
 	// Create an explosion at the bomb's position
 	createExplosionAtPosition(pc.X, pc.Y)
 
 	// Spread the explosion in each direction
-	for i := 1; i <= (defaultExplosionRange + puc.ExtraExplosionRange); i++ {
+	for i := 1; i <= (bc.BlastRadius); i++ {
 		createExplosionAtPosition(pc.X+float64(i), pc.Y) // Right
 		createExplosionAtPosition(pc.X-float64(i), pc.Y) // Left
 		createExplosionAtPosition(pc.X, pc.Y+float64(i)) // Up
@@ -111,7 +114,7 @@ func SpreadExplosion(pc *PositionComponent, puc *PowerUpComponent) {
 }
 
 func createExplosionAtPosition(X, Y float64) {
-	CreateExplosion(&PositionComponent{X: X, Y: Y})
+	CreateExplosion(&PositionComponent{X: X, Y: Y, Size: 1})
 }
 
 func CreateExplosion(positionComponent *PositionComponent) {

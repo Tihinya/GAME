@@ -107,9 +107,7 @@ func (ex *ExplosionSystem) update(dt float64) {
 			continue // Skip if no timer is set for this bomb
 		}
 		if time.Now().After(bombTimer.Time) {
-			puc := powerUpManager.powerUps[e]
-			pc := positionManager.positions[e]
-			SpreadExplosion(pc, puc)
+			SpreadExplosion(e)
 		}
 	}
 }

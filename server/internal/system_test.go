@@ -32,7 +32,7 @@ func TestMovmentSystem(t *testing.T) {
 	fmt.Println(playerPosition)
 }
 
-func TestBomb(t *testing.T) {
+func TestBombPlacingAndDetonation(t *testing.T) {
 	player := CreatePlayer()
 	playerPosition := positionManager.positions[player]
 
@@ -65,10 +65,48 @@ func TestBomb(t *testing.T) {
 	fmt.Printf("STAGE 2: Gameloop started at a tickrate of %v, running for 600 milliseconds\n", fps)
 
 	loop.Start()
-	time.Sleep(time.Millisecond * 530)
-	fmt.Println("STAGE 2: Checking if bomb hasn't detonated yet")
 
-	for en, ec := range explosionManager.explosions {
-		fmt.Println(*en, *ec)
+	fmt.Printf("STAGE 2: Checking if bomb hasn't detonated in 100ms (detonation is %v)\n", fuseTime)
+	initialCheckTime := time.Millisecond * 100
+	time.Sleep(initialCheckTime)
+
+	bombTimer := timerManager.timers[bomb]
+	if bombTimer != nil && time.Now().Before(bombTimer.Time) {
+		fmt.Printf("STAGE 2: Bomb %v has not exploded in 100ms\n", bomb.Id)
+	} else {
+		t.Errorf("STAGE 2: Bomb %v has exploded", bomb.Id)
 	}
+
+	fmt.Printf("STAGE 2: Checking if bomb hasn't detonated in 530ms (detonation is %v)\n", fuseTime)
+	time.Sleep(fuseTime - initialCheckTime)
+
+	if bombTimer != nil && time.Now().Before(bombTimer.Time) {
+		t.Errorf("STAGE 2 FAILED: Bomb %v should have exploded", bomb.Id)
+	} else {
+		fmt.Printf("STAGE 2: Bomb %v has exploded after %v\n", bomb.Id, fuseTime)
+	}
+
+	spreadPositions := getExplosionSpreadPositions(bomb)
+	for _, pos := range spreadPositions {
+		//if !explosionExistsAt(pos) {
+		//	t.Errorf("STAGE 2 FAILED: No explosion found at (X: %v, Y: %v)", pos.X, pos.Y)
+		//}
+		fmt.Println(pos)
+	}
+}
+
+func getExplosionSpreadPositions(e *Entity) []PositionComponent {
+	var positions []PositionComponent
+	bc := bombManager.bombs[e]
+	bombPos := positionManager.positions[e]
+
+	// Spread the explosion in each direction and collect the positions
+	for i := 1; i <= bc.BlastRadius; i++ {
+		positions = append(positions, PositionComponent{X: bombPos.X + float64(i), Y: bombPos.Y}) // Right
+		positions = append(positions, PositionComponent{X: bombPos.X - float64(i), Y: bombPos.Y}) // Left
+		positions = append(positions, PositionComponent{X: bombPos.X, Y: bombPos.Y + float64(i)}) // Up
+		positions = append(positions, PositionComponent{X: bombPos.X, Y: bombPos.Y - float64(i)}) // Down
+	}
+
+	return positions
 }

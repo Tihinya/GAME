@@ -88,6 +88,9 @@ func (hs *HealthSystem) update(dt time.Time) {
 		if hc.CurrentHealth <= 0 {
 			DeleteAllEntityComponents(e)
 		}
+		if hc.CurrentHealth > hc.MaxHealth {
+			hc.CurrentHealth = hc.MaxHealth
+		}
 	}
 }
 

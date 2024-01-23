@@ -253,43 +253,14 @@ func (em *EntityManager) CreateEntity() *Entity {
 }
 
 func DeleteAllEntityComponents(e *Entity) {
-	if _, exists := positionManager.postions[e]; exists {
-		delete(positionManager.postions, e)
-	}
-
-	if _, exists := motionManager.motions[e]; exists {
-		delete(motionManager.motions, e)
-	}
-
-	if _, exists := collisionManager.collisions[e]; exists {
-		delete(collisionManager.collisions, e)
-	}
-
-	if _, exists := healthManager.healths[e]; exists {
-		delete(healthManager.healths, e)
-	}
-
-	if _, exists := inputManager.inputs[e]; exists {
-		delete(inputManager.inputs, e)
-	}
-
-	if _, exists := timerManager.timers[e]; exists {
-		delete(timerManager.timers, e)
-	}
-
-	if _, exists := powerUpManager.powerUps[e]; exists {
-		delete(powerUpManager.powerUps, e)
-	}
-
-	if _, exists := damageManager.damages[e]; exists {
-		delete(damageManager.damages, e)
-	}
-
-	if _, exists := bombManager.bombs[e]; exists {
-		delete(bombManager.bombs, e)
-	}
-
-	if _, exists := explosionManager.explosions[e]; exists {
-		delete(explosionManager.explosions, e)
-	}
+	delete(positionManager.postions, e)
+	delete(motionManager.motions, e)
+	delete(collisionManager.collisions, e)
+	delete(healthManager.healths, e)
+	delete(inputManager.inputs, e)
+	delete(timerManager.timers, e)
+	delete(powerUpManager.powerUps, e)
+	delete(damageManager.damages, e)
+	delete(bombManager.bombs, e)
+	delete(explosionManager.explosions, e)
 }

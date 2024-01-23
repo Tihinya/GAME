@@ -1,7 +1,6 @@
 package internal
 
 import (
-	"fmt"
 	"testing"
 	"time"
 )
@@ -29,5 +28,5 @@ func TestMovmentSystem(t *testing.T) {
 
 	}
 
-	fmt.Println(playerPosition)
+	// fmt.Println(playerPosition)
 }

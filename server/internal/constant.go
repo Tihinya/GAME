@@ -23,7 +23,7 @@ const (
 	componentSize         = 1.0
 	playerMaxHealth       = 3
 	boxHealth             = 1
-	defaultExplosionRange = 6
+	defaultExplosionRange = 2
 	explosionDamage       = 1
 	defaultBombAmount     = 1
 )
@@ -95,21 +95,22 @@ func CreateBomb(player *Entity) *Entity {
 
 func SpreadExplosion(e *Entity) {
 	pc := positionManager.GetPosition(e)
-	bc := bombManager.bombs[e]
+	bc := bombManager.GetBomb(e)
 	// Create an explosion at the bomb's position
-	createExplosionAtPosition(pc.X, pc.Y)
+	createExplosionAtPosition(&PositionComponent{X: pc.X, Y: pc.Y, Size: 1})
 
 	// Spread the explosion in each direction
-	for i := 1; i <= (bc.BlastRadius); i++ {
-		createExplosionAtPosition(pc.X+float64(i), pc.Y) // Right
-		createExplosionAtPosition(pc.X-float64(i), pc.Y) // Left
-		createExplosionAtPosition(pc.X, pc.Y+float64(i)) // Up
-		createExplosionAtPosition(pc.X, pc.Y-float64(i)) // Down
+	for i := 1; i < (bc.BlastRadius); i++ {
+		createExplosionAtPosition(&PositionComponent{X: pc.X + float64(i), Y: pc.Y, Size: 1}) // Right
+		createExplosionAtPosition(&PositionComponent{X: pc.X - float64(i), Y: pc.Y, Size: 1}) // Left
+		createExplosionAtPosition(&PositionComponent{X: pc.X, Y: pc.Y + float64(i), Size: 1}) // Up
+		createExplosionAtPosition(&PositionComponent{X: pc.X, Y: pc.Y - float64(i), Size: 1}) // Down
 	}
 }
 
-func createExplosionAtPosition(X, Y float64) {
-	CreateExplosion(&PositionComponent{X: X, Y: Y, Size: 1})
+func createExplosionAtPosition(pos *PositionComponent) {
+	ExplodeBox(pos)
+	CreateExplosion(pos)
 }
 
 func CreateExplosion(positionComponent *PositionComponent) {
@@ -148,14 +149,16 @@ func CreateWall() *Entity {
 	return wall
 }
 
-func CreateBox() *Entity {
+func CreateBox(X, Y float64) *Entity {
 	box := entityManager.CreateEntity()
 
-	playerPosition := &PositionComponent{}
+	playerPosition := &PositionComponent{X: X, Y: Y, Size: 1}
 	playerHealth := &HealthComponent{CurrentHealth: boxHealth, MaxHealth: boxHealth}
+	boxIdentifier := &BoxComponent{}
 
 	positionManager.AddComponent(box, playerPosition)
 	healthManager.AddComponent(box, playerHealth)
+	boxManager.AddComponent(box, boxIdentifier)
 
 	return box
 }

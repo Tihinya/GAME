@@ -44,7 +44,8 @@ type BombComponent struct {
 	IsActive    bool
 	Owner       *Entity
 }
-type ExplosionComponent struct {
-	// doesn't need any attributes,
-	// just for identifying explosions
-}
+
+// doesn't need any attributes,
+// just for identifying explosions
+type ExplosionComponent struct{}
+type BoxComponent struct{}

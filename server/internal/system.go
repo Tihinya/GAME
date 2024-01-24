@@ -26,6 +26,7 @@ var (
 	powerUpManager   = NewPowerUpManager()
 	damageManager    = NewDamageManager()
 	healthManager    = NewHealthManager()
+	boxManager       = NewBoxManager()
 )
 
 // --------------------------------
@@ -100,14 +101,48 @@ func (hs *HealthSystem) update(dt float64) {
 }
 
 func (ex *ExplosionSystem) update(dt float64) {
+	bombManager.mutex.RLock()
 	for e := range bombManager.bombs {
-		bombTimer, exists := timerManager.timers[e]
-		if !exists || bombTimer == nil {
+		bombManager.mutex.RUnlock()
+
+		bombTimer := timerManager.GetTimer(e)
+		if bombTimer == nil {
 			fmt.Println("No timer found for bomb", e.Id)
 			continue // Skip if no timer is set for this bomb
 		}
 		if time.Now().After(bombTimer.Time) {
 			SpreadExplosion(e)
+			DeleteAllEntityComponents(e)
+
+		}
+		bombManager.mutex.RLock()
+	}
+	bombManager.mutex.RUnlock()
+
+	explosionManager.mutex.RLock()
+	for e2 := range explosionManager.explosions {
+		explosionManager.mutex.RUnlock()
+
+		explosionTimer := timerManager.GetTimer(e2)
+		if explosionTimer == nil {
+			fmt.Println("No timer found for explosion", e2.Id)
+			continue
+		}
+		if time.Now().After(explosionTimer.Time) {
+			DeleteAllEntityComponents(e2)
+		}
+		explosionManager.mutex.RLock()
+	}
+	explosionManager.mutex.RUnlock()
+}
+
+func ExplodeBox(pos *PositionComponent) {
+	entityManager.mutex.RLock()
+	defer entityManager.mutex.RUnlock()
+	for _, e := range entityManager.entities {
+		pc := positionManager.GetPosition(e)
+		if pc != nil && boxManager.GetBox(e) != nil && ((pc.X == pos.X) && (pc.Y == pos.Y)) {
+			DeleteAllEntityComponents(e)
 		}
 	}
 }

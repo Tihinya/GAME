@@ -1,4 +1,4 @@
-package internal
+package engine
 
 type Entity struct {
 	Id int

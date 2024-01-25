@@ -32,15 +32,21 @@ type TimerComponent struct {
 	Time time.Time
 }
 type PowerUpComponent struct {
-	Name string
+	ExtraBombs          int
+	ExtraExplosionRange int
+	ExtraSpeed          float64
 }
 type DamageComponent struct {
 	DamageAmount int
 }
 type BombComponent struct {
-	PutedBomb  map[*Entity]bool
-	BombAmount int
+	BlastRadius int
+	IsActive    bool
+	Owner       *Entity
 }
-type ExplosionComponent struct {
-	Range int
-}
+
+// doesn't need any attributes,
+// just for identifying explosions
+type ExplosionComponent struct{}
+type BoxComponent struct{}
+type WallComponent struct{}

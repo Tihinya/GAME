@@ -2,7 +2,6 @@ package engine
 
 import (
 	"testing"
-	"time"
 )
 
 func TestMaxHealthSystem(t *testing.T) {
@@ -12,19 +11,19 @@ func TestMaxHealthSystem(t *testing.T) {
 	playerHealth := &HealthComponent{CurrentHealth: 3, MaxHealth: 3}
 
 	healthManager.AddComponent(player, playerHealth)
-	positionManager.AddComponet(player, playerPosition)
+	positionManager.AddComponent(player, playerPosition)
 
 	hc := healthManager.healths[player]
 
 	hc.CurrentHealth += 1
 
-	healthSystem.update(time.Now())
+	healthSystem.update(1.0)
 
 	if hc.CurrentHealth != 3 {
 		t.Fatalf("Expected player health to be 1, got %v", hc.CurrentHealth)
 	}
-	if positionManager.postions[player] == nil {
-		t.Fatalf("Expected player position to sbe nil, got %v", positionManager.postions[player])
+	if positionManager.GetPosition(player) == nil {
+		t.Fatalf("Expected player position to sbe nil, got %v", positionManager.GetPosition(player))
 	}
 }
 
@@ -35,19 +34,19 @@ func TestMinHealthSystem(t *testing.T) {
 	playerHealth := &HealthComponent{CurrentHealth: 1, MaxHealth: 3}
 
 	healthManager.AddComponent(player, playerHealth)
-	positionManager.AddComponet(player, playerPosition)
+	positionManager.AddComponent(player, playerPosition)
 
 	hc := healthManager.healths[player]
 	hc.CurrentHealth -= 1
 
-	healthSystem.update(time.Now())
+	healthSystem.update(1.0)
 
 	if hc.CurrentHealth != 0 {
 		t.Fatalf("Expected player health to be 0, got %v", hc.CurrentHealth)
 	}
 
-	if positionManager.postions[player] != nil {
-		t.Fatalf("Expected player position to sbe nil, got %v", positionManager.postions[player])
+	if positionManager.GetPosition(player) != nil {
+		t.Fatalf("Expected player position to sbe nil, got %v", positionManager.GetPosition(player))
 	}
 
 }

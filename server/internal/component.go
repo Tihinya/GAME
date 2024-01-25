@@ -49,3 +49,4 @@ type BombComponent struct {
 // just for identifying explosions
 type ExplosionComponent struct{}
 type BoxComponent struct{}
+type WallComponent struct{}

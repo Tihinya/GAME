@@ -58,7 +58,7 @@ func TestBombPlacingAndDetonation(t *testing.T) {
 	fmt.Println("STAGE 1: SUCCESS")
 
 	fmt.Println("STAGE 2: Testing bomb explosion")
-	fps := 10
+	fps := 60
 	loop := gameloop.New(time.Duration(fps), func(dt float64) {
 		explosionSystem.update(dt)
 	})
@@ -117,7 +117,7 @@ func TestBombPlacingAndDetonation(t *testing.T) {
 }
 
 func TestBoxExplosion(t *testing.T) {
-	fps := 30
+	fps := 60
 	loop := gameloop.New(time.Duration(fps), func(dt float64) {
 		explosionSystem.update(dt)
 	})
@@ -125,9 +125,7 @@ func TestBoxExplosion(t *testing.T) {
 	fmt.Printf("Gameloop started at a tickrate of %v, running for 600 milliseconds\n", fps)
 
 	player := CreatePlayer() // X: 10 Y: 5
-
 	bomb := CreateBomb(player)
-
 	box := CreateBox(10, 4) // Box one unit above player
 
 	fmt.Printf("Created player id %v, bomb id %v and box id %v\n", player.Id, bomb.Id, box.Id)
@@ -135,42 +133,74 @@ func TestBoxExplosion(t *testing.T) {
 
 	entityManager.mutex.RLock()
 	for _, e := range entityManager.entities {
+		entityManager.mutex.RUnlock()
 		if boxManager.GetBox(e) != nil {
 			pc := positionManager.GetPosition(e)
-			fmt.Printf("Box exists in (X: %v, Y: %v)\n", pc.X, pc.Y)
+			fmt.Printf("Box exists at (X: %v, Y: %v)\n", pc.X, pc.Y)
 		}
+		entityManager.mutex.RLock()
 	}
 	entityManager.mutex.RUnlock()
 
-	fmt.Printf("Waiting for %v for bomb to explode\n", explodeTime+fuseTime)
-	time.Sleep(fuseTime + (explodeTime / 2))
-
-	fmt.Printf("Checking if box was hit by explosion\n")
-	entityManager.mutex.RLock()
-	for _, e := range entityManager.entities {
-		if boxManager.GetBox(e) != nil {
-			pc := positionManager.GetPosition(e)
-			if explosionExistsAt(*pc) {
-				fmt.Printf("Found explosion at box's location\n")
-			} else {
-				fmt.Printf("ERROR: did not find explosion at location X: (%v, Y: %v)\n", pc.X, pc.Y)
-			}
-		}
-	}
-	entityManager.mutex.RUnlock()
+	fmt.Printf("Waiting for %v for bomb to explode\n", fuseTime+explodeTime)
+	time.Sleep(fuseTime + explodeTime)
 
 	fmt.Printf("Checking if box was destroyed by explosion\n")
-	time.Sleep(time.Millisecond * 200)
 
 	if boxManager.GetBox(box) != nil {
-		fmt.Printf("ERROR: Box is still alive >:(\n")
+		t.Errorf("ERROR: Box is still alive >:(\n")
 	}
 	fmt.Printf("SUCCESS: box has been assassinated\n")
+	loop.Stop()
+}
+
+func TestWallExplosion(t *testing.T) {
+	fps := 60
+	loop := gameloop.New(time.Duration(fps), func(dt float64) {
+		explosionSystem.update(dt)
+	})
+	loop.Start()
+	fmt.Printf("Gameloop started at a tickrate of %v, running for 600 milliseconds\n", fps)
+
+	CreateWall(10, 6)        // Box one unit above player
+	player := CreatePlayer() // X: 10 Y: 5
+	bomb := CreateBomb(player)
+
+	pc := positionManager.GetPosition(bomb)
+	fmt.Printf("Bomb exists at (X: %v, Y: %v)\n", pc.X, pc.Y)
+
+	fmt.Printf("Waiting for %v for bomb to explode\n", fuseTime+explodeTime)
+	time.Sleep(fuseTime + time.Millisecond*50)
+
+	entityManager.mutex.RLock()
+	for _, e := range entityManager.entities {
+		entityManager.mutex.RUnlock()
+		if wallManager.GetWall(e) != nil {
+			pc := positionManager.GetPosition(e)
+			fmt.Printf("Wall exists at (X: %v, Y: %v)\n", pc.X, pc.Y)
+		}
+		entityManager.mutex.RLock()
+	}
+	entityManager.mutex.RUnlock()
+
+	for i := 0; i < defaultExplosionRange; i++ {
+		if explosionExistsAt(PositionComponent{X: pc.X, Y: pc.Y + float64(i), Size: 1}) {
+			fmt.Printf("Found explosion at (X: %v, Y: %v)\n", pc.X, pc.Y+float64(i))
+		} else {
+			fmt.Printf("Didn't find explosion at (X: %v, Y: %v)\n", pc.X, pc.Y+float64(i))
+		}
+
+		if explosionExistsAt(PositionComponent{X: pc.X + float64(i), Y: pc.Y, Size: 1}) {
+			fmt.Printf("Found explosion at (X: %v, Y: %v)\n", pc.X+float64(i), pc.Y)
+		} else {
+			fmt.Printf("Didn't find explosion at (X: %v, Y: %v)\n", pc.X+float64(i), pc.Y)
+		}
+	}
 }
 
 func getExplosionSpreadPositions(e *Entity) []PositionComponent {
 	var positions []PositionComponent
-	bc := bombManager.bombs[e]
+	bc := bombManager.GetBomb(e)
 	bombPos := positionManager.GetPosition(e)
 
 	positions = append(positions, *bombPos)
@@ -196,14 +226,16 @@ func getExplosionSpreadPositions(e *Entity) []PositionComponent {
 
 func explosionExistsAt(pos PositionComponent) bool {
 	entityManager.mutex.RLock()
-	defer entityManager.mutex.RUnlock()
 	for _, e := range entityManager.entities {
+		entityManager.mutex.RUnlock()
 		if explosionManager.GetExplosion(e) != nil {
 			pc := positionManager.GetPosition(e)
 			if pc.X == pos.X && pc.Y == pos.Y {
 				return true
 			}
 		}
+		entityManager.mutex.RLock()
 	}
+	entityManager.mutex.RUnlock()
 	return false
 }

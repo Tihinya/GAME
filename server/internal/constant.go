@@ -96,15 +96,33 @@ func CreateBomb(player *Entity) *Entity {
 func SpreadExplosion(e *Entity) {
 	pc := positionManager.GetPosition(e)
 	bc := bombManager.GetBomb(e)
+
+	if pc == nil || bc == nil {
+		return
+	}
+
 	// Create an explosion at the bomb's position
 	createExplosionAtPosition(&PositionComponent{X: pc.X, Y: pc.Y, Size: 1})
 
-	// Spread the explosion in each direction
-	for i := 1; i < (bc.BlastRadius); i++ {
-		createExplosionAtPosition(&PositionComponent{X: pc.X + float64(i), Y: pc.Y, Size: 1}) // Right
-		createExplosionAtPosition(&PositionComponent{X: pc.X - float64(i), Y: pc.Y, Size: 1}) // Left
-		createExplosionAtPosition(&PositionComponent{X: pc.X, Y: pc.Y + float64(i), Size: 1}) // Up
-		createExplosionAtPosition(&PositionComponent{X: pc.X, Y: pc.Y - float64(i), Size: 1}) // Down
+	directions := []struct {
+		dx, dy float64
+	}{
+		{1, 0}, {-1, 0}, {0, 1}, {0, -1},
+	}
+
+	for _, dir := range directions {
+		for i := 1; i < bc.BlastRadius; i++ {
+			newPos := &PositionComponent{X: pc.X + float64(i)*dir.dx, Y: pc.Y + float64(i)*dir.dy}
+
+			if IsWallAtPosition(newPos) {
+				break // Wall is blocking this direction
+			}
+			if IsBoxAtPosition(newPos) {
+				createExplosionAtPosition(newPos)
+				break // Explode at wall and block all next explosions
+			}
+			createExplosionAtPosition(newPos)
+		}
 	}
 }
 
@@ -140,12 +158,15 @@ func CreatePowerUp(powerUpName string) *Entity {
 	return powerUp
 }
 
-func CreateWall() *Entity {
+func CreateWall(X, Y float64) *Entity {
 	wall := entityManager.CreateEntity()
 
-	playerPosition := &PositionComponent{}
+	playerPosition := &PositionComponent{X: X, Y: Y, Size: 1}
+	wallIdentifier := &WallComponent{}
 
 	positionManager.AddComponent(wall, playerPosition)
+	wallManager.AddComponent(wall, wallIdentifier)
+
 	return wall
 }
 
@@ -161,4 +182,30 @@ func CreateBox(X, Y float64) *Entity {
 	boxManager.AddComponent(box, boxIdentifier)
 
 	return box
+}
+
+func IsWallAtPosition(pos *PositionComponent) bool {
+	// Iterate over all entities to check for a wall at the given position
+	for _, e := range entityManager.entities {
+		if wallComp := wallManager.GetWall(e); wallComp != nil {
+			wallPos := positionManager.GetPosition(e)
+			if wallPos != nil && wallPos.X == pos.X && wallPos.Y == pos.Y {
+				return true // Found a wall at the position
+			}
+		}
+	}
+	return false
+}
+
+func IsBoxAtPosition(pos *PositionComponent) bool {
+	// Iterate over all entities to check for a wall at the given position
+	for _, e := range entityManager.entities {
+		if boxComp := boxManager.GetBox(e); boxComp != nil {
+			boxPos := positionManager.GetPosition(e)
+			if boxPos != nil && boxPos.X == pos.X && boxPos.Y == pos.Y {
+				return true // Found a wall at the position
+			}
+		}
+	}
+	return false
 }

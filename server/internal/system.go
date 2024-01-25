@@ -27,6 +27,7 @@ var (
 	damageManager    = NewDamageManager()
 	healthManager    = NewHealthManager()
 	boxManager       = NewBoxManager()
+	wallManager      = NewWallManager()
 )
 
 // --------------------------------

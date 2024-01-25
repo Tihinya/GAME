@@ -60,6 +60,11 @@ type BoxManager struct {
 	boxes map[*Entity]*BoxComponent
 }
 
+type WallManager struct {
+	mutex sync.RWMutex
+	walls map[*Entity]*WallComponent
+}
+
 // --------------------------------
 // Systems
 // --------------------------------
@@ -236,6 +241,12 @@ func NewBoxManager() *BoxManager {
 	}
 }
 
+func NewWallManager() *WallManager {
+	return &WallManager{
+		walls: make(map[*Entity]*WallComponent),
+	}
+}
+
 // --------------------------------
 // Add Component functions
 // --------------------------------
@@ -310,6 +321,12 @@ func (boxManager *BoxManager) AddComponent(entity *Entity, component *BoxCompone
 	boxManager.mutex.Lock()
 	defer boxManager.mutex.Unlock()
 	boxManager.boxes[entity] = component
+}
+
+func (wallManager *WallManager) AddComponent(entity *Entity, component *WallComponent) {
+	wallManager.mutex.Lock()
+	defer wallManager.mutex.Unlock()
+	wallManager.walls[entity] = component
 }
 
 // --------------------------------
@@ -388,6 +405,12 @@ func (boxManager *BoxManager) DeleteComponent(entity *Entity) {
 	delete(boxManager.boxes, entity)
 }
 
+func (wallManager *WallManager) DeleteComponent(entity *Entity) {
+	wallManager.mutex.Lock()
+	defer boxManager.mutex.Unlock()
+	delete(wallManager.walls, entity)
+}
+
 // --------------------------------
 // Get manager components
 // --------------------------------
@@ -421,6 +444,12 @@ func (m *BoxManager) GetBox(entity *Entity) *BoxComponent {
 	m.mutex.RLock()
 	defer m.mutex.RUnlock()
 	return m.boxes[entity]
+}
+
+func (m *WallManager) GetWall(entity *Entity) *WallComponent {
+	m.mutex.RLock()
+	defer m.mutex.RUnlock()
+	return m.walls[entity]
 }
 
 // --------------------------------

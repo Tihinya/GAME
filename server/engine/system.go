@@ -1,4 +1,4 @@
-package internal
+package engine
 
 import (
 	"fmt"
@@ -44,7 +44,6 @@ var (
 
 // var damageSystem = NewDamageSystem()
 // var bombSystem = NewBombSystem()
-// var explosionSystem = NewExplosionSystem()
 
 func (mv *MotionSystem) update(dt float64) {
 	for e, mc := range mv.manager.motions {
@@ -97,6 +96,9 @@ func (hs *HealthSystem) update(dt float64) {
 	for e, hc := range hs.manager.healths {
 		if hc.CurrentHealth <= 0 {
 			DeleteAllEntityComponents(e)
+		}
+		if hc.CurrentHealth > hc.MaxHealth {
+			hc.CurrentHealth = hc.MaxHealth
 		}
 	}
 }
@@ -151,15 +153,20 @@ func ExplodeBox(pos *PositionComponent) {
 func DetectCollision(entity *Entity, ignoreList ...*Entity) bool {
 	pc1 := positionManager.positions[entity]
 
+	entityManager.mutex.RLock()
 	for _, e2 := range entityManager.entities {
+		entityManager.mutex.RUnlock()
 		if entity == e2 && contains(ignoreList, entity) {
+			entityManager.mutex.RLock()
 			continue
 		}
 
-		pc2 := positionManager.positions[e2]
+		pc2 := positionManager.GetPosition(e2)
 		collides := pc1.X < pc2.X+pc2.Size && pc1.X+pc2.Size > pc2.X && pc1.Y < pc2.Y+pc2.Size && pc1.Y+pc1.Size > pc2.Y
+		entityManager.mutex.RUnlock()
 		return collides
 	}
+	entityManager.mutex.RUnlock()
 	return false
 }
 

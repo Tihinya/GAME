@@ -71,16 +71,16 @@ func (is *InputSystem) update(dt float64) {
 	for e, ic := range is.manager.inputs {
 		mc := motionManager.motions[e]
 		if ic.Input[Up] {
-			mc.Velocity.Y = -Speed
+			mc.Velocity.Y = -mc.Speed
 		}
 		if ic.Input[Down] {
-			mc.Velocity.Y = Speed
+			mc.Velocity.Y = mc.Speed
 		}
 		if ic.Input[Left] {
-			mc.Velocity.X = -Speed
+			mc.Velocity.X = -mc.Speed
 		}
 		if ic.Input[Right] {
-			mc.Velocity.X = Speed
+			mc.Velocity.X = mc.Speed
 		}
 		if ic.Input[Space] {
 			bomb := CreateBomb(e)
@@ -150,23 +150,44 @@ func ExplodeBox(pos *PositionComponent) {
 	}
 }
 
-func DetectCollision(entity *Entity, ignoreList ...*Entity) bool {
-	pc1 := positionManager.positions[entity]
+func DetectCollision(e1 *Entity, ignoreList ...*Entity) bool {
+	pc1 := positionManager.positions[e1]
 
-	entityManager.mutex.RLock()
-	for _, e2 := range entityManager.entities {
-		entityManager.mutex.RUnlock()
-		if entity == e2 && contains(ignoreList, entity) {
-			entityManager.mutex.RLock()
+	// collisionManager.mutex.RLock()
+
+	for e2, cc := range collisionManager.collisions {
+		if e1 == e2 || contains(ignoreList, e1) {
 			continue
 		}
 
-		pc2 := positionManager.GetPosition(e2)
+		mc := motionManager.motions[e1]
+		pc2 := positionManager.positions[e2]
+		puc := powerUpManager.powerUps[e2]
+		puc1 := powerUpManager.powerUps[e1]
+		hc := healthManager.healths[e1]
+
 		collides := pc1.X < pc2.X+pc2.Size && pc1.X+pc2.Size > pc2.X && pc1.Y < pc2.Y+pc2.Size && pc1.Y+pc1.Size > pc2.Y
-		entityManager.mutex.RUnlock()
+
+		if cc.Enabled && collides {
+			switch puc.Name {
+			case PowerUpSpeed:
+				mc.Speed += Speed
+				DeleteAllEntityComponents(e2)
+			case PowerUpHealth:
+				hc.CurrentHealth += Regeneration
+				DeleteAllEntityComponents(e2)
+			case PowerUpBomb:
+				puc1.ExtraBombs += Bomb
+				DeleteAllEntityComponents(e2)
+			case PowerUpExplosion:
+				puc1.ExtraExplosionRange += ExplosionRange
+				DeleteAllEntityComponents(e2)
+			}
+			return false
+		}
 		return collides
 	}
-	entityManager.mutex.RUnlock()
+	// collisionManager.mutex.RUnlock()
 	return false
 }
 

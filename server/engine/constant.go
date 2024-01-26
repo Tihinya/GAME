@@ -4,19 +4,24 @@ import (
 	"time"
 )
 
-var (
-	Speed        = 1.0
-	Acceleration = 1.0
-	Regeneration = 1
-	Bomb         = 1
+const (
+	Speed          = 1.0
+	Acceleration   = 1.0
+	Regeneration   = 1
+	Bomb           = 1
+	ExplosionRange = 1
 )
 
 const (
-	Up    = "up"
-	Down  = "down"
-	Left  = "left"
-	Right = "right"
-	Space = "space"
+	Up               = "up"
+	Down             = "down"
+	Left             = "left"
+	Right            = "right"
+	Space            = "space"
+	PowerUpSpeed     = 1
+	PowerUpBomb      = 2
+	PowerUpHealth    = 3
+	PowerUpExplosion = 4
 )
 
 const (
@@ -147,7 +152,7 @@ func CreateExplosion(positionComponent *PositionComponent) {
 	explosionManager.AddComponent(explosion, explosionComponent)
 }
 
-func CreatePowerUp(powerUpName string) *Entity {
+func CreatePowerUp(powerUpName uint) *Entity {
 	powerUp := entityManager.CreateEntity()
 
 	powerUpPosition := &PositionComponent{}

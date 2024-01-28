@@ -9,7 +9,7 @@ import (
 )
 
 func TestBombPlacingAndDetonation(t *testing.T) {
-	player := CreatePlayer()
+	player := CreatePlayer(1)
 	playerPosition := positionManager.positions[player]
 
 	fmt.Println("STAGE 1: Testing bomb placing")
@@ -100,7 +100,7 @@ func TestBoxExplosion(t *testing.T) {
 	loop.Start()
 	fmt.Printf("Gameloop started at a tickrate of %v, running for 600 milliseconds\n", fps)
 
-	player := CreatePlayer() // X: 10 Y: 5
+	player := CreatePlayer(1) // X: 10 Y: 5
 	bomb := CreateBomb(player)
 	box := CreateBox(10, 4) // Box one unit above player
 
@@ -138,8 +138,8 @@ func TestWallExplosion(t *testing.T) {
 	loop.Start()
 	fmt.Printf("Gameloop started at a tickrate of %v, running for 600 milliseconds\n", fps)
 
-	CreateWall(10, 6)        // Box one unit above player
-	player := CreatePlayer() // X: 10 Y: 5
+	CreateWall(10, 6)         // Box one unit above player
+	player := CreatePlayer(1) // X: 10 Y: 5
 	bomb := CreateBomb(player)
 
 	pc := positionManager.GetPosition(bomb)

@@ -1,12 +1,11 @@
 package socket
 
 import (
+	"bomberman-dom/models"
 	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
-
-	"bomberman-dom/models"
 )
 
 const (
@@ -14,8 +13,8 @@ const (
 	EventOnlineUserList    = "online_users_list" // Event for receiving connected user list
 	EventReceiveMessage    = "receive_message"   // Event for receiving messages
 	EventClientInfoMessage = "client_info"       // Displays username, id on user connect
-	GameEventNotification  = "game_notification" // For backend error logs (maybe?)
-	GameEventMovePlayer    = "game_move"         // Move - up, down, left, right
+	GameEventError         = "game_error"        // For backend error logs
+	GameEventInput         = "game_input"        // Input - up, down, left, right, place
 	GameEventGameState     = "game_state"        // State - lobby, start, end
 	GameEventBomb          = "game_bomb"         // Bomb - place, explode
 	GameEventObstacle      = "game_obstacle"     // Obstacles - boxes, powerups

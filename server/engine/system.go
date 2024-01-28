@@ -3,6 +3,8 @@ package engine
 import (
 	"fmt"
 	"time"
+
+	"bomberman-dom/models"
 )
 
 var (
@@ -15,19 +17,20 @@ var (
 // --------------------------------
 
 var (
-	entityManager    = NewEntityManager()
-	positionManager  = NewPositionManager()
-	motionManager    = NewMotionManager()
-	inputManager     = NewInputManager()
-	timerManager     = NewTimerManager()
-	bombManager      = NewBombManager()
-	explosionManager = NewExplosionManager()
-	collisionManager = NewCollisionManager()
-	powerUpManager   = NewPowerUpManager()
-	damageManager    = NewDamageManager()
-	healthManager    = NewHealthManager()
-	boxManager       = NewBoxManager()
-	wallManager      = NewWallManager()
+	entityManager     = NewEntityManager()
+	positionManager   = NewPositionManager()
+	motionManager     = NewMotionManager()
+	inputManager      = NewInputManager()
+	timerManager      = NewTimerManager()
+	bombManager       = NewBombManager()
+	explosionManager  = NewExplosionManager()
+	collisionManager  = NewCollisionManager()
+	powerUpManager    = NewPowerUpManager()
+	damageManager     = NewDamageManager()
+	healthManager     = NewHealthManager()
+	boxManager        = NewBoxManager()
+	wallManager       = NewWallManager()
+	userEntityManager = NewUserEntityManager()
 )
 
 // --------------------------------
@@ -83,11 +86,7 @@ func (is *InputSystem) update(dt float64) {
 			mc.Velocity.X = Speed
 		}
 		if ic.Input[Space] {
-			bomb := CreateBomb(e)
-			if DetectCollision(bomb, e) {
-				delete(positionManager.positions, bomb)
-			}
-
+			CreateBomb(e)
 		}
 	}
 }
@@ -148,6 +147,12 @@ func ExplodeBox(pos *PositionComponent) {
 			DeleteAllEntityComponents(e)
 		}
 	}
+}
+
+func HandleInput(input models.GameInput) {
+	ic := &InputComponent{Input: input.Keys}
+	player := userEntityManager.GetUserEntity(input.PlayerID)
+	inputManager.SetInputs(player.entity, ic)
 }
 
 func DetectCollision(entity *Entity, ignoreList ...*Entity) bool {

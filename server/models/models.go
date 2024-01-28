@@ -1,6 +1,8 @@
 package models
 
-import "time"
+import (
+	"time"
+)
 
 //-- Socket Events --\\
 
@@ -24,6 +26,27 @@ type ReceivedMessage struct {
 type ClientInfo struct {
 	Username string `json:"username"`
 	Id       int    `json:"id"`
+}
+
+type GameState struct {
+	State string `json:"game_state"` // "STARTED", "PAUSED", "ENDED"
+}
+
+type GameInput struct {
+	PlayerID int             `json:"player_id"`
+	Keys     map[string]bool `json:"keys"`
+}
+
+type GameBomb struct {
+	PlayerID int    `json:"player_id"`
+	Action   string `json:"action"` // "place", "detonate"
+	X        int    `json:"x"`
+	Y        int    `json:"y"`
+}
+
+type GameError struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
 }
 
 //-- Miscellaneous --\\

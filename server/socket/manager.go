@@ -41,12 +41,7 @@ func NewManager() *Manager {
 
 func (m *Manager) setupEventHandlers() {
 	m.handlers[EventSendMessage] = SendMessageHandler
-	m.handlers[GameEventNotification] = GameNotificationHandler
-	m.handlers[GameEventMovePlayer] = GameMoveHandler
-	m.handlers[GameEventGameState] = GameStateHandler
-	m.handlers[GameEventBomb] = GameBombHandler
-	m.handlers[GameEventObstacle] = GameObstacleHandler
-	m.handlers[GameEventPowerup] = GamePowerupHandler
+	m.handlers[GameEventInput] = GameInputHandler
 }
 
 func (m *Manager) routeEvent(event Event, c *Client) error {
@@ -171,7 +166,7 @@ func SerializeData(EventType string, data ...any) Event {
 	if len(data) == 1 {
 		jsonData, err := json.Marshal(data[0])
 		if err != nil {
-			log.Printf("failed to marshal online user list: %v", err)
+			log.Printf("failed to marshal eventType %v: %v\n", EventType, err)
 		}
 
 		var outgoingEvent Event

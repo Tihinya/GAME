@@ -40,15 +40,17 @@ var (
 	player1Spawny = 5.0
 )
 
-func CreatePlayer() *Entity {
+func CreatePlayer(socketId int) *Entity {
 	player := entityManager.CreateEntity()
 
+	playerUser := &UserEntityComponent{entity: player}
 	playerPosition := &PositionComponent{X: player1SpawnX, Y: player1Spawny, Size: componentSize}
 	playerMotion := &MotionComponent{Velocity: Vec2{X: 0, Y: 0}, Acceleration: Vec2{X: 0, Y: 0}}
 	playerInput := &InputComponent{Input: map[string]bool{}}
 	playerHealth := &HealthComponent{CurrentHealth: playerMaxHealth, MaxHealth: playerMaxHealth}
 	playerPowerUps := &PowerUpComponent{ExtraBombs: 0, ExtraExplosionRange: 0, ExtraSpeed: 0}
 
+	userEntityManager.AddComponent(socketId, playerUser)
 	positionManager.AddComponent(player, playerPosition)
 	motionManager.AddComponent(player, playerMotion)
 	inputManager.AddComponent(player, playerInput)
@@ -64,11 +66,15 @@ func CreateBomb(player *Entity) *Entity {
 	pc := positionManager.GetPosition(player)
 	puc := powerUpManager.powerUps[player]
 
+	bombManager.mutex.RLock()
 	for _, bc := range bombManager.bombs {
+		bombManager.mutex.RUnlock()
 		if bc.Owner == player {
 			playerActiveBombs++
 		}
+		bombManager.mutex.RLock()
 	}
+	bombManager.mutex.RUnlock()
 
 	if !(playerActiveBombs < (1 + puc.ExtraBombs)) {
 		return nil

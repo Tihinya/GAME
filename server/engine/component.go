@@ -12,6 +12,7 @@ type Vec2 struct {
 	X, Y float64
 }
 type MotionComponent struct {
+	Speed        float64
 	Velocity     Vec2
 	Acceleration Vec2
 }
@@ -35,6 +36,7 @@ type PowerUpComponent struct {
 	ExtraBombs          int
 	ExtraExplosionRange int
 	ExtraSpeed          float64
+	Name                uint
 }
 type DamageComponent struct {
 	DamageAmount int

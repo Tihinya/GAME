@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"sync"
 
-	"bomberman-dom/engine"
 	"bomberman-dom/helpers"
 	"bomberman-dom/models"
 
@@ -161,9 +160,4 @@ func (m *Manager) GetClientByUsername(username string) *Client {
 func idCounter() int {
 	UserIdCounter++
 	return UserIdCounter
-}
-
-func (m *Manager) SetupTestManager() {
-	Instance = NewManager()
-	engine.SetBroadcaster(Instance)
 }

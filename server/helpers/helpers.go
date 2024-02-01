@@ -8,14 +8,9 @@ import (
 	"bomberman-dom/models"
 )
 
-type GameInputHandler interface {
-	HandleInput(input models.GameInput)
-}
-
 type Broadcaster interface {
 	BroadcastClient(event models.Event, clientId int)
 	BroadcastAllClients(event models.Event)
-	SetupTestManager()
 }
 
 func ReturnMessageJSON(w http.ResponseWriter, message string, httpCode int, status string) {

@@ -4,11 +4,14 @@ import (
 	"log"
 	"net/http"
 
+	"bomberman-dom/engine"
 	"bomberman-dom/socket"
 )
 
 func main() {
 	socket.Instance = socket.NewManager()
+	engine.SetBroadcaster(socket.Instance)
+
 	http.HandleFunc("/ws", socket.Instance.ServeWS)
 
 	log.Println("Ctrl + Click on the link: http://localhost:8080")

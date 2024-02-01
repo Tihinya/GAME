@@ -1,8 +1,6 @@
 package engine
 
 import (
-	"bomberman-dom/helpers"
-	"bomberman-dom/models"
 	"time"
 )
 
@@ -98,13 +96,7 @@ func CreateBomb(player *Entity) *Entity {
 	positionManager.AddComponent(bomb, bombPosition)
 	bombManager.AddComponent(bomb, bombComponent)
 
-	event := helpers.SerializeData("game_bomb", models.GameBomb{
-		PlayerID: player.Id,
-		Action:   "place",
-		X:        pc.X,
-		Y:        pc.Y,
-	})
-	broadcaster.BroadcastAllClients(event)
+	broadcastBomb(pc.X, pc.Y, "create")
 
 	return bomb
 }
@@ -148,8 +140,6 @@ func createExplosionAtPosition(pos *PositionComponent) {
 }
 
 func CreateExplosion(positionComponent *PositionComponent) {
-	// Collision check here idk how tf to do it
-
 	explosion := entityManager.CreateEntity()
 
 	explosionComponent := &ExplosionComponent{}
@@ -161,6 +151,8 @@ func CreateExplosion(positionComponent *PositionComponent) {
 	positionManager.AddComponent(explosion, explosionPosition)
 	damageManager.AddComponent(explosion, explosionDamage)
 	explosionManager.AddComponent(explosion, explosionComponent)
+
+	broadcastExplosion(positionComponent.X, positionComponent.Y, "create")
 }
 
 func CreatePowerUp(powerUpName string) *Entity {
@@ -183,6 +175,8 @@ func CreateWall(X, Y float64) *Entity {
 	positionManager.AddComponent(wall, playerPosition)
 	wallManager.AddComponent(wall, wallIdentifier)
 
+	broadcastObstacle(X, Y, "wall", "create")
+
 	return wall
 }
 
@@ -196,6 +190,8 @@ func CreateBox(X, Y float64) *Entity {
 	positionManager.AddComponent(box, playerPosition)
 	healthManager.AddComponent(box, playerHealth)
 	boxManager.AddComponent(box, boxIdentifier)
+
+	broadcastObstacle(X, Y, "box", "create")
 
 	return box
 }

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"bomberman-dom/engine"
 	"bomberman-dom/models"
 )
 
@@ -12,6 +13,8 @@ func GameInputHandler(event models.Event, c *Client) error {
 	if err := json.Unmarshal(event.Payload, &gameInput); err != nil {
 		return fmt.Errorf("GameInputHandler - bad payload in request: %v", err)
 	}
+
+	engine.HandleInput(gameInput, c.id)
 
 	return nil
 }

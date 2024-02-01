@@ -34,25 +34,36 @@ type ClientInfo struct {
 	Id       int    `json:"id"`
 }
 
-type GameState struct {
+type GameState struct { // game_state
 	State string `json:"game_state"` // "STARTED", "PAUSED", "ENDED"
 }
 
-type GameInput struct {
-	PlayerID int             `json:"player_id"`
-	Keys     map[string]bool `json:"keys"`
+type GameInput struct { // game_input
+	Keys map[string]bool `json:"keys"`
 }
 
-type GameBomb struct {
-	PlayerID int     `json:"player_id"`
-	Action   string  `json:"action"` // "place", "detonate"
-	X        float64 `json:"x"`
-	Y        float64 `json:"y"`
+type GameBomb struct { // game_bomb
+	Action string  `json:"action"` // create, delete
+	X      float64 `json:"x"`
+	Y      float64 `json:"y"`
 }
 
-type GameError struct {
+type GameExplosion struct { // game_explosion
+	Action string  `json:"action"` // create, delete
+	X      float64 `json:"x"`
+	Y      float64 `json:"y"`
+}
+
+type GameError struct { // game_error
 	Code    int    `json:"code"`
 	Message string `json:"message"`
+}
+
+type GameObstacle struct { // game_obstacle
+	Type   string  `json:"type"`   // box, wall, powerup
+	Action string  `json:"action"` // create, delete
+	X      float64 `json:"x"`
+	Y      float64 `json:"y"`
 }
 
 //-- Miscellaneous --\\

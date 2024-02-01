@@ -121,6 +121,7 @@ func (ex *ExplosionSystem) update(dt float64) {
 			continue // Skip if no timer is set for this bomb
 		}
 		if time.Now().After(bombTimer.Time) {
+
 			SpreadExplosion(e)
 			DeleteAllEntityComponents(e)
 
@@ -152,14 +153,15 @@ func ExplodeBox(pos *PositionComponent) {
 	for _, e := range entityManager.entities {
 		pc := positionManager.GetPosition(e)
 		if pc != nil && boxManager.GetBox(e) != nil && ((pc.X == pos.X) && (pc.Y == pos.Y)) {
+			broadcastObstacle(pos.X, pos.Y, "box", "delete")
 			DeleteAllEntityComponents(e)
 		}
 	}
 }
 
-func HandleInput(input models.GameInput) {
+func HandleInput(input models.GameInput, playerId int) {
 	ic := &InputComponent{Input: input.Keys}
-	player := userEntityManager.GetUserEntity(input.PlayerID)
+	player := userEntityManager.GetUserEntity(playerId)
 	inputManager.SetInputs(player.entity, ic)
 }
 

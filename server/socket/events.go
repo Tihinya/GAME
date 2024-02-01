@@ -1,11 +1,12 @@
 package socket
 
 import (
-	"bomberman-dom/models"
 	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
+
+	"bomberman-dom/models"
 )
 
 const (
@@ -19,6 +20,7 @@ const (
 	GameEventBomb          = "game_bomb"         // Bomb - place, explode
 	GameEventObstacle      = "game_obstacle"     // Obstacles - boxes, powerups
 	GameEventPowerup       = "game_powerup"      // Powerup - pickup
+	GameEventExplosion     = "game_event"        // Explosion - appear, disappear
 )
 
 type Event struct {
@@ -63,7 +65,6 @@ func SendMessageHandler(event models.Event, c *Client) error {
 }
 
 func (m *Manager) BroadcastClient(event models.Event, clientId int) {
-	fmt.Println("YUHH")
 	m.Lock()
 	defer m.Unlock()
 
@@ -76,7 +77,6 @@ func (m *Manager) BroadcastClient(event models.Event, clientId int) {
 }
 
 func (m *Manager) BroadcastAllClients(event models.Event) {
-	fmt.Println("YAHAAH")
 	m.Lock()
 	defer m.Unlock()
 

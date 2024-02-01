@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"bomberman-dom/helpers"
 	"bomberman-dom/models"
 )
 
@@ -47,6 +48,13 @@ var (
 
 // var damageSystem = NewDamageSystem()
 // var bombSystem = NewBombSystem()
+
+// Solving import cycles the interface way!!
+var broadcaster helpers.Broadcaster
+
+func SetBroadcaster(b helpers.Broadcaster) {
+	broadcaster = b
+}
 
 func (mv *MotionSystem) update(dt float64) {
 	for e, mc := range mv.manager.motions {

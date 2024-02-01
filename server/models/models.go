@@ -1,10 +1,16 @@
 package models
 
 import (
+	"encoding/json"
 	"time"
 )
 
 //-- Socket Events --\\
+
+type Event struct {
+	Type    string          `json:"type"`
+	Payload json.RawMessage `json:"payload"`
+}
 
 type SendMessageEvent struct {
 	Message  string    `json:"message"`
@@ -38,10 +44,10 @@ type GameInput struct {
 }
 
 type GameBomb struct {
-	PlayerID int    `json:"player_id"`
-	Action   string `json:"action"` // "place", "detonate"
-	X        int    `json:"x"`
-	Y        int    `json:"y"`
+	PlayerID int     `json:"player_id"`
+	Action   string  `json:"action"` // "place", "detonate"
+	X        float64 `json:"x"`
+	Y        float64 `json:"y"`
 }
 
 type GameError struct {

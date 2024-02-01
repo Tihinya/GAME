@@ -26,9 +26,9 @@ type Event struct {
 	Payload json.RawMessage `json:"payload"`
 }
 
-type EventHandler func(event Event, c *Client) error
+type EventHandler func(event models.Event, c *Client) error
 
-func SendMessageHandler(event Event, c *Client) error {
+func SendMessageHandler(event models.Event, c *Client) error {
 	var chatEvent models.SendMessageEvent
 	if err := json.Unmarshal(event.Payload, &chatEvent); err != nil {
 		return fmt.Errorf("bad payload in request: %v", err)
@@ -50,7 +50,7 @@ func SendMessageHandler(event Event, c *Client) error {
 		return fmt.Errorf("failed to marshal broadcast message: %v", err)
 	}
 
-	var outgoingEvent Event = Event{
+	var outgoingEvent models.Event = models.Event{
 		Type:    EventReceiveMessage,
 		Payload: data,
 	}
@@ -60,6 +60,29 @@ func SendMessageHandler(event Event, c *Client) error {
 	}
 
 	return nil
+}
+
+func (m *Manager) BroadcastClient(event models.Event, clientId int) {
+	fmt.Println("YUHH")
+	m.Lock()
+	defer m.Unlock()
+
+	user := m.GetClientById(clientId)
+	for client := range m.clients {
+		if client.username == user.username {
+			client.egress <- event
+		}
+	}
+}
+
+func (m *Manager) BroadcastAllClients(event models.Event) {
+	fmt.Println("YAHAAH")
+	m.Lock()
+	defer m.Unlock()
+
+	for client := range m.clients {
+		client.egress <- event
+	}
 }
 
 func broadcastClientInfo(m *Manager, username string) {

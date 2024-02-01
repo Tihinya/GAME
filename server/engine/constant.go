@@ -1,6 +1,8 @@
 package engine
 
 import (
+	"bomberman-dom/helpers"
+	"bomberman-dom/models"
 	"time"
 )
 
@@ -95,6 +97,14 @@ func CreateBomb(player *Entity) *Entity {
 	timerManager.AddComponent(bomb, bombTimer)
 	positionManager.AddComponent(bomb, bombPosition)
 	bombManager.AddComponent(bomb, bombComponent)
+
+	event := helpers.SerializeData("game_bomb", models.GameBomb{
+		PlayerID: player.Id,
+		Action:   "place",
+		X:        pc.X,
+		Y:        pc.Y,
+	})
+	broadcaster.BroadcastAllClients(event)
 
 	return bomb
 }

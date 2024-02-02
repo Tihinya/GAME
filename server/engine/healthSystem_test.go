@@ -6,6 +6,9 @@ import (
 
 func TestMaxHealthSystem(t *testing.T) {
 	player := entityManager.CreateEntity()
+	defer func() {
+		DeleteAllEntityComponents(player)
+	}()
 
 	playerPosition := &PositionComponent{X: 10, Y: 5, Size: 1}
 	playerHealth := &HealthComponent{CurrentHealth: 3, MaxHealth: 3}
@@ -17,7 +20,7 @@ func TestMaxHealthSystem(t *testing.T) {
 
 	hc.CurrentHealth += 1
 
-	healthSystem.update(1.0)
+	healthSystem.update(0.1)
 
 	if hc.CurrentHealth != 3 {
 		t.Fatalf("Expected player health to be 1, got %v", hc.CurrentHealth)
@@ -29,6 +32,9 @@ func TestMaxHealthSystem(t *testing.T) {
 
 func TestMinHealthSystem(t *testing.T) {
 	player := entityManager.CreateEntity()
+	defer func() {
+		DeleteAllEntityComponents(player)
+	}()
 
 	playerPosition := &PositionComponent{X: 10, Y: 5, Size: 1}
 	playerHealth := &HealthComponent{CurrentHealth: 1, MaxHealth: 3}
@@ -39,7 +45,7 @@ func TestMinHealthSystem(t *testing.T) {
 	hc := healthManager.healths[player]
 	hc.CurrentHealth -= 1
 
-	healthSystem.update(1.0)
+	healthSystem.update(0.1)
 
 	if hc.CurrentHealth != 0 {
 		t.Fatalf("Expected player health to be 0, got %v", hc.CurrentHealth)

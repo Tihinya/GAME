@@ -6,11 +6,13 @@ import (
 )
 
 func TestValidComponentManager(t *testing.T) {
-	entityManager := NewEntityManager()
-	entity := entityManager.CreateEntity()
-	positionManager := NewPositionManager()
 	timerManager := NewTimerManager()
 	spriteManager := NewSpriteManager()
+
+	entity := entityManager.CreateEntity()
+	defer func() {
+		DeleteAllEntityComponents(entity)
+	}()
 
 	positionComponent := &PositionComponent{X: 10, Y: 20}
 	positionManager.AddComponent(entity, positionComponent)

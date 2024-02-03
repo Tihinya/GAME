@@ -486,6 +486,20 @@ func (m *UserEntityManager) GetUserEntity(userId int) *UserEntityComponent {
 	return m.users[userId]
 }
 
+// Not sure about this function, since reverse map lookups are inefficient,
+// need to check in real-time if this lags the game or not
+func (m *UserEntityManager) GetUserIdByEntity(entity *Entity) int {
+	m.mutex.RLock()
+	defer m.mutex.RUnlock()
+
+	for userId, ent := range m.users {
+		if ent.entity == entity {
+			return userId
+		}
+	}
+	return 0
+}
+
 // --------------------------------
 // Set manager components
 // --------------------------------

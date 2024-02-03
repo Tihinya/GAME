@@ -75,6 +75,7 @@ func (mv *MotionSystem) update(dt float64) {
 			mc.Velocity.X -= mc.Acceleration.X
 			mc.Velocity.Y -= mc.Acceleration.Y
 		}
+		broadcastMotion(pc.X, pc.Y, e)
 	}
 }
 
@@ -121,10 +122,8 @@ func (ex *ExplosionSystem) update(dt float64) {
 			continue // Skip if no timer is set for this bomb
 		}
 		if time.Now().After(bombTimer.Time) {
-
 			SpreadExplosion(e)
 			DeleteAllEntityComponents(e)
-
 		}
 		bombManager.mutex.RLock()
 	}
@@ -140,6 +139,7 @@ func (ex *ExplosionSystem) update(dt float64) {
 			continue
 		}
 		if time.Now().After(explosionTimer.Time) {
+			broadcastDeleteExplosions(e2)
 			DeleteAllEntityComponents(e2)
 		}
 		explosionManager.mutex.RLock()
@@ -188,15 +188,19 @@ func DetectCollision(e1 *Entity, ignoreList ...*Entity) bool {
 			case PowerUpSpeed:
 				mc.Speed += Speed
 				DeleteAllEntityComponents(e2)
+				broadcastPowerup(pc2.X, pc2.Y, 1, "delete")
 			case PowerUpHealth:
 				hc.CurrentHealth += Regeneration
 				DeleteAllEntityComponents(e2)
+				broadcastPowerup(pc2.X, pc2.Y, 3, "delete")
 			case PowerUpBomb:
 				puc1.ExtraBombs += Bomb
 				DeleteAllEntityComponents(e2)
+				broadcastPowerup(pc2.X, pc2.Y, 2, "delete")
 			case PowerUpExplosion:
 				puc1.ExtraExplosionRange += ExplosionRange
 				DeleteAllEntityComponents(e2)
+				broadcastPowerup(pc2.X, pc2.Y, 4, "delete")
 			}
 			return false
 		}

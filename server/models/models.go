@@ -66,6 +66,19 @@ type GameObstacle struct { // game_obstacle
 	Y      float64 `json:"y"`
 }
 
+type GamePowerup struct { // game_powerup
+	Type   int     `json:"type"`   // speed(1), bomb(2), health(3), explosion(4)
+	Action string  `json:"action"` // create, delete
+	X      float64 `json:"x"`
+	Y      float64 `json:"y"`
+}
+
+type GamePlayer struct { // game_player
+	ClientId int     `json:"clientId"`
+	X        float64 `json:"x"`
+	Y        float64 `json:"y"`
+}
+
 //-- Miscellaneous --\\
 
 // HTTP JSON response

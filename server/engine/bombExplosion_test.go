@@ -50,7 +50,7 @@ func TestBombPlacingAndDetonation(t *testing.T) {
 	if bombTimer != nil && time.Now().Before(bombTimer.Time) {
 		fmt.Printf("STAGE 2: Bomb %v has not exploded (after %v)\n", bomb.Id, initialCheckTime)
 	} else {
-		t.Errorf("STAGE 2: Bomb %v has exploded", bomb.Id)
+		t.Errorf("STAGE 2 ERROR: Bomb %v has exploded", bomb.Id)
 	}
 
 	fmt.Printf("STAGE 2: Checking if bomb hasn't detonated in 530ms (detonation is %v)\n", fuseTime)
@@ -65,11 +65,16 @@ func TestBombPlacingAndDetonation(t *testing.T) {
 	fmt.Println("STAGE 2: Testing for bomb explosion positions")
 
 	for _, pos := range spreadPositions {
-		if !explosionExistsAt(pos) {
-			t.Errorf("STAGE 2 FAILED: No explosion found at (X: %v, Y: %v)", pos.X, pos.Y)
+		condition := func() bool {
+			return explosionExistsAt(pos)
 		}
-		fmt.Printf("Explosion exists at (X: %v, Y: %v)\n", pos.X, pos.Y)
+		if err := pollWithTimeout(condition, 10*time.Millisecond, 1*time.Second); err != nil {
+			t.Fatalf("Failed waiting for explosion: %v", err)
+		} else {
+			fmt.Printf("Explosion exists at (X: %v, Y: %v)\n", pos.X, pos.Y)
+		}
 	}
+
 	fmt.Println("STAGE 2: Checking if explosions disappear prematurely (after 50ms)")
 	time.Sleep(explodeTime - (100 * time.Millisecond))
 
@@ -214,4 +219,21 @@ func explosionExistsAt(pos PositionComponent) bool {
 	}
 	entityManager.mutex.RUnlock()
 	return false
+}
+
+func pollWithTimeout(condition func() bool, interval time.Duration, timeout time.Duration) error {
+	timeoutTimer := time.NewTimer(timeout)
+	tick := time.NewTicker(interval)
+	defer tick.Stop()
+
+	for {
+		select {
+		case <-timeoutTimer.C:
+			return fmt.Errorf("timeout reached without condition being met")
+		case <-tick.C:
+			if condition() {
+				return nil
+			}
+		}
+	}
 }

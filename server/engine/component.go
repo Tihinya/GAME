@@ -36,7 +36,7 @@ type PowerUpComponent struct {
 	ExtraBombs          int
 	ExtraExplosionRange int
 	ExtraSpeed          float64
-	Name                uint
+	Name                int
 }
 type DamageComponent struct {
 	DamageAmount int
@@ -51,7 +51,7 @@ type UserEntityComponent struct {
 }
 
 // doesn't need any attributes,
-// just for identifying explosions
+// just for identifying explosions/boxes/walls
 type (
 	ExplosionComponent struct{}
 	BoxComponent       struct{}

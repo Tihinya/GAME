@@ -21,6 +21,7 @@ const (
 	GameEventObstacle      = "game_obstacle"     // Obstacles - boxes, powerups
 	GameEventPowerup       = "game_powerup"      // Powerup - pickup
 	GameEventExplosion     = "game_event"        // Explosion - appear, disappear
+	GameEventPlayer        = "game_player"       // Player - position
 )
 
 type Event struct {

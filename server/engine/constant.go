@@ -160,13 +160,16 @@ func CreateExplosion(positionComponent *PositionComponent) {
 	broadcastExplosion(positionComponent.X, positionComponent.Y, "create")
 }
 
-func CreatePowerUp(powerUpName uint) *Entity {
+func CreatePowerUp(powerUpName int) *Entity {
 	powerUp := entityManager.CreateEntity()
 
 	powerUpPosition := &PositionComponent{}
-	// powerUpProperty := &PowerUpComponent{Name: powerUpName}
+	powerUpProperty := &PowerUpComponent{Name: powerUpName}
+
 	positionManager.AddComponent(powerUp, powerUpPosition)
-	// powerUpManager.AddComponent(powerUp, powerUpProperty)
+	powerUpManager.AddComponent(powerUp, powerUpProperty)
+
+	broadcastPowerup(powerUpPosition.X, powerUpPosition.Y, powerUpName, "create")
 
 	return powerUp
 }

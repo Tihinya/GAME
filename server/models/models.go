@@ -73,10 +73,15 @@ type GamePowerup struct { // game_powerup
 	Y      float64 `json:"y"`
 }
 
-type GamePlayer struct { // game_player
+type GamePlayer struct { // game_player_creation & game_player_position
 	ClientId int     `json:"clientId"`
 	X        float64 `json:"x"`
 	Y        float64 `json:"y"`
+}
+
+type GamePlayerHealth struct {
+	ClientId int `json:"clientId"`
+	Health   int `json:"health"`
 }
 
 //-- Miscellaneous --\\

@@ -10,18 +10,20 @@ import (
 )
 
 const (
-	EventSendMessage       = "send_message"      // Event for sending messages
-	EventOnlineUserList    = "online_users_list" // Event for receiving connected user list
-	EventReceiveMessage    = "receive_message"   // Event for receiving messages
-	EventClientInfoMessage = "client_info"       // Displays username, id on user connect
-	GameEventError         = "game_error"        // For backend error logs
-	GameEventInput         = "game_input"        // Input - up, down, left, right, place
-	GameEventGameState     = "game_state"        // State - lobby, start, end
-	GameEventBomb          = "game_bomb"         // Bomb - place, explode
-	GameEventObstacle      = "game_obstacle"     // Obstacles - boxes, powerups
-	GameEventPowerup       = "game_powerup"      // Powerup - pickup
-	GameEventExplosion     = "game_event"        // Explosion - appear, disappear
-	GameEventPlayer        = "game_player"       // Player - position
+	EventSendMessage        = "send_message"         // Event for sending messages
+	EventOnlineUserList     = "online_users_list"    // Event for receiving connected user list
+	EventReceiveMessage     = "receive_message"      // Event for receiving messages
+	EventClientInfoMessage  = "client_info"          // Displays username, id on user connect
+	GameEventError          = "game_error"           // For backend error logs
+	GameEventInput          = "game_input"           // Input - up, down, left, right, place
+	GameEventGameState      = "game_state"           // State - lobby, start, end
+	GameEventBomb           = "game_bomb"            // Bomb - place, explode
+	GameEventObstacle       = "game_obstacle"        // Obstacles - boxes, powerups
+	GameEventPowerup        = "game_powerup"         // Powerup - pickup
+	GameEventExplosion      = "game_event"           // Explosion - appear, disappear
+	GameEventPlayerMotion   = "game_player_position" // Player motion - position
+	GameEventPlayerHealth   = "game_player_health"   // Player health - health
+	GameEventPlayerCreation = "game_player_creation" // Player creation - X, Y
 )
 
 type Event struct {

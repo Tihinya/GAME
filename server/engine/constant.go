@@ -61,6 +61,7 @@ func CreatePlayer(socketId int) *Entity {
 	inputManager.AddComponent(player, playerInput)
 	healthManager.AddComponent(player, playerHealth)
 	powerUpManager.AddComponent(player, playerPowerUps)
+	broadcastPlayerCreation(playerPosition.X, playerPosition.Y, socketId)
 
 	return player
 }

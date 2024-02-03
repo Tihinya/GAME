@@ -103,10 +103,14 @@ func (is *InputSystem) update(dt float64) {
 func (hs *HealthSystem) update(dt float64) {
 	for e, hc := range hs.manager.healths {
 		if hc.CurrentHealth <= 0 {
+			socketId := userEntityManager.GetUserIdByEntity(e)
+			broadcastPlayerHealth(socketId, hc.CurrentHealth)
 			DeleteAllEntityComponents(e)
 		}
 		if hc.CurrentHealth > hc.MaxHealth {
+			socketId := userEntityManager.GetUserIdByEntity(e)
 			hc.CurrentHealth = hc.MaxHealth
+			broadcastPlayerHealth(socketId, hc.CurrentHealth)
 		}
 	}
 }

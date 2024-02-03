@@ -25,13 +25,13 @@ var (
 	maxMessageSize = 512
 )
 
-func NewClient(conn *websocket.Conn, manager *Manager, username string, id int) *Client {
+func NewClient(conn *websocket.Conn, manager *Manager) *Client {
+	manager.UserId++
 	return &Client{
 		connection: conn,
 		manager:    manager,
 		egress:     make(chan Event),
-		username:   username,
-		id:         id,
+		id:         manager.UserId,
 	}
 }
 

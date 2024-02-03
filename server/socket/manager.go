@@ -6,8 +6,8 @@ import (
 	"log"
 	"net/http"
 	"sync"
+	"time"
 
-	"bomberman-dom/helpers"
 	"bomberman-dom/models"
 
 	"github.com/gorilla/websocket"
@@ -20,13 +20,19 @@ var (
 	}
 	ErrEventNotSupported = errors.New("this event type is not supported")
 	Instance             *Manager
-	UserIdCounter        int
 )
+
+type Message struct {
+	Name    string
+	Time    time.Time
+	Message string
+}
 
 type Manager struct {
 	clients ClientList
 	sync.RWMutex
 	handlers map[string]EventHandler
+	UserId   int
 }
 
 func NewManager() *Manager {
@@ -40,13 +46,14 @@ func NewManager() *Manager {
 }
 
 func (m *Manager) setupEventHandlers() {
-	m.handlers[EventSendMessage] = SendMessageHandler
+	m.handlers[EventSendMessage] = MessageHandler
 	m.handlers[GameEventNotification] = GameNotificationHandler
 	m.handlers[GameEventMovePlayer] = GameMoveHandler
 	m.handlers[GameEventGameState] = GameStateHandler
 	m.handlers[GameEventBomb] = GameBombHandler
 	m.handlers[GameEventObstacle] = GameObstacleHandler
 	m.handlers[GameEventPowerup] = GamePowerupHandler
+	m.handlers[EventLoginHandler] = UsernameHandler
 }
 
 func (m *Manager) routeEvent(event Event, c *Client) error {
@@ -74,6 +81,8 @@ func (m *Manager) removeClient(client *Client) {
 		client.connection.Close()
 		delete(m.clients, client)
 	}
+
+	broadcastOnlineUserList(m)
 }
 
 func (m *Manager) GetConnectedClient(username string) Event {
@@ -97,42 +106,40 @@ func (m *Manager) GetConnectedClients() Event {
 	onlineUserList.List = make(map[int]string)
 
 	for client := range m.clients {
-		onlineUserList.List[client.id] = client.username
+		if client.username != "" {
+			onlineUserList.List[client.id] = client.username
+		}
 	}
 
 	return SerializeData(EventOnlineUserList, onlineUserList)
 }
 
 func (m *Manager) ServeWS(w http.ResponseWriter, r *http.Request) {
-	// ws://localhost:8080/ws?username=exampleUser
-	username := r.URL.Query().Get("username")
-	if username == "" || m.usernameInClients(username) {
-		helpers.ReturnMessageJSON(w,
-			"Username is empty or already taken",
-			http.StatusBadRequest, "Error")
-		return
-	}
+	// TODO: return error with websocket and close connection. This part wont work
 
 	websocketUpgrader.CheckOrigin = func(r *http.Request) bool { return true }
-
 	conn, err := websocketUpgrader.Upgrade(w, r, nil)
+
 	if err != nil {
+
 		log.Println(err)
-		helpers.ReturnMessageJSON(w,
-			"Could not upgrade to websocket connection, internal error",
-			http.StatusInternalServerError, "Error")
+		// helpers.ReturnMessageJSON(w,
+		// 	"Could not upgrade to websocket connection, internal error",
+		// 	http.StatusInternalServerError, "Error")
 		return
 	}
 
 	// Create New Client
-	client := NewClient(conn, m, username, idCounter())
+	client := NewClient(conn, m)
 	m.addClient(client)
 
 	go client.readMessages()
 	go client.writeMessages()
 
-	broadcastClientInfo(m, username)
-	broadcastOnlineUserList(m)
+	// TODO: move broadcasts to lobby connection(where you parse username)
+	//
+	// broadcastClientInfo(m, username)
+	// broadcastOnlineUserList(m)
 }
 
 func (m *Manager) usernameInClients(username string) bool {
@@ -160,11 +167,6 @@ func (m *Manager) GetClientByUsername(username string) *Client {
 		}
 	}
 	return nil
-}
-
-func idCounter() int {
-	UserIdCounter++
-	return UserIdCounter
 }
 
 func SerializeData(EventType string, data ...any) Event {

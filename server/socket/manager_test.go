@@ -67,9 +67,8 @@ func connectSocket(t *testing.T, baseURL string, username string) *websocket.Con
 }
 
 func sendMessage(t *testing.T, connection *websocket.Conn, message string, senderId int) {
-	sendData := &models.SendMessageEvent{
+	sendData := &models.MessageEvent{
 		Message:  message,
-		SenderID: senderId,
 		SentTime: time.Now(),
 	}
 
@@ -138,7 +137,7 @@ func receiveMessage(t *testing.T, connection *websocket.Conn, receiveType string
 			switch event.Type {
 			case socket.EventReceiveMessage:
 				if receiveType == "chat_message" {
-					var message models.SendMessageEvent
+					var message models.MessageEvent
 					if err := json.Unmarshal(event.Payload, &message); err != nil {
 						t.Fatalf("ERROR: unmarshaling message: %v\n", err)
 					}

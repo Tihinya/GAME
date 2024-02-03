@@ -4,21 +4,14 @@ import "time"
 
 //-- Socket Events --\\
 
-type SendMessageEvent struct {
+type MessageEvent struct {
 	Message  string    `json:"message"`
-	SenderID int       `json:"sender_id"`
 	SentTime time.Time `json:"sent_time"`
+	Name     string    `json:"name"`
 }
 
 type ConnectedUserListEvent struct {
 	List map[int]string `json:"list"`
-}
-
-type ReceivedMessage struct {
-	Message    string    `json:"message"`
-	SenderID   int       `json:"sender_id"`
-	ReceiverID int       `json:"receiver_id"`
-	Sent       time.Time `json:"sent_time"`
 }
 
 type ClientInfo struct {
@@ -32,4 +25,16 @@ type ClientInfo struct {
 type Response struct {
 	Status  string `json:"status"`
 	Message string `json:"message,omitempty"`
+}
+
+type AddUsernameEvent struct {
+	UserName string `json:"username"`
+}
+
+type CurrentUsers struct {
+	UserList []string `json:"user_list"`
+}
+
+type ChangeState struct {
+	State string `json:"state"`
 }

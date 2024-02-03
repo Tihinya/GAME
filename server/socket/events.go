@@ -3,6 +3,7 @@ package socket
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
@@ -20,6 +21,7 @@ const (
 	GameEventBomb          = "game_bomb"         // Bomb - place, explode
 	GameEventObstacle      = "game_obstacle"     // Obstacles - boxes, powerups
 	GameEventPowerup       = "game_powerup"      // Powerup - pickup
+	EventLoginHandler      = "register_user"     // Register user
 )
 
 type Event struct {
@@ -29,55 +31,52 @@ type Event struct {
 
 type EventHandler func(event Event, c *Client) error
 
-func SendMessageHandler(event Event, c *Client) error {
-	var chatEvent models.SendMessageEvent
-	if err := json.Unmarshal(event.Payload, &chatEvent); err != nil {
+func MessageHandler(event Event, c *Client) error {
+	var message models.MessageEvent
+	if err := json.Unmarshal(event.Payload, &message); err != nil {
 		return fmt.Errorf("bad payload in request: %v", err)
 	}
 
-	chatEvent.Message = strings.TrimSpace(chatEvent.Message)
-	if chatEvent.Message == "" {
+	message.Message = strings.TrimSpace(message.Message)
+	if message.Message == "" {
 		return nil
 	}
 
-	var broadMessage models.SendMessageEvent
+	message.SentTime = time.Now()
 
-	broadMessage.SentTime = time.Now()
-	broadMessage.Message = chatEvent.Message
-	broadMessage.SenderID = c.id
+	// connection must have a name to send message
+	if c.username == "" {
+		return nil
+	}
 
-	data, err := json.Marshal(broadMessage)
+	message.Name = c.username
+
+	data, err := json.Marshal(message)
 	if err != nil {
 		return fmt.Errorf("failed to marshal broadcast message: %v", err)
 	}
 
-	var outgoingEvent Event = Event{
-		Type:    EventReceiveMessage,
-		Payload: data,
-	}
-
 	for client := range c.manager.clients {
-		client.egress <- outgoingEvent
+		client.egress <- Event{
+			Type:    EventReceiveMessage,
+			Payload: data,
+		}
 	}
 
 	return nil
 }
 
-func broadcastClientInfo(m *Manager, username string) {
-	m.Lock()
-	defer m.Unlock()
-	clientInfoEvent := m.GetConnectedClient(username)
-	for client := range m.clients {
-		if client.username == username {
-			client.egress <- clientInfoEvent
-		}
-	}
+func broadcastClientInfo(m *Manager, client *Client) {
+	client.egress <- SerializeData(EventClientInfoMessage, models.ClientInfo{
+		Username: client.username,
+		Id:       client.id,
+	})
 }
 
 func broadcastOnlineUserList(m *Manager) {
-	m.Lock()
-	defer m.Unlock()
 	onlineUsersListEvent := m.GetConnectedClients()
+	log.Println(onlineUsersListEvent)
+
 	for client := range m.clients {
 		client.egress <- onlineUsersListEvent
 	}

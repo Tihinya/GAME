@@ -4,16 +4,21 @@ import { subscribe, ws } from "../../additional-functions/websocket";
 import "./lobby.css";
 
 const maxUsers = 4;
+const states = {
+  awaiting_players_state: "Wait players to suck cock",
+  closing_lobby_state: "Time to close lobby!",
+  starting_game_state: "Gays starts in...",
+};
 
 export default function Lobby() {
   const [messages, setMessages] = useState([]);
-  const [timer, setTimer] = useState(20);
+  const [timer, setTimer] = useState({ state: "", currentTime: 0 });
   const [players, setPlayers] = useState([]);
 
   useEffect(() => {
-    subscribe("online_users_list", ({ list }) => {
-      const onlineList = Object.entries(list).map(([id, username]) => ({
-        id: Number(id),
+    subscribe("online_users_list", (list) => {
+      console.log(list);
+      const onlineList = Object.keys(list).map((username) => ({
         username: username,
       }));
 
@@ -27,6 +32,11 @@ export default function Lobby() {
 
         return temp;
       });
+    });
+
+    subscribe("ama_boy_next_door", ({ state, currentTime }) => {
+      console.log(currentTime, state);
+      setTimer({ state, currentTime });
     });
   }, []);
 
@@ -70,8 +80,12 @@ export default function Lobby() {
       </div>
       <div className="main-page-lobby-info">
         <div className="main-page-lobby-timer">
-          <p>Time to close lobby:</p>
-          <p>0:{timer}</p>
+          <p>{states[timer.state]}</p>
+          <p>
+            {timer.state !== states["awaiting_players_state"]
+              ? "0:" + timer.currentTime
+              : ""}
+          </p>
         </div>
         <div className="main-page-lobby-players">
           <p>

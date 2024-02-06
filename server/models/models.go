@@ -38,3 +38,8 @@ type CurrentUsers struct {
 type ChangeState struct {
 	State string `json:"state"`
 }
+
+type LobbyState struct {
+	CurrentTime int    `json:"currentTime"`
+	State       string `json:"state"`
+}

@@ -10,12 +10,14 @@ import (
 
 type (
 	ClientList map[*Client]bool
+	OnlineList map[string]*Client
 	Client     struct {
 		connection *websocket.Conn
 		manager    *Manager
 		egress     chan Event
 		id         int // Unique identifier for the client
 		username   string
+		lobby      *Lobby
 	}
 )
 

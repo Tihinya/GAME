@@ -33,12 +33,19 @@ type Manager struct {
 	sync.RWMutex
 	handlers map[string]EventHandler
 	UserId   int
+	Lobby    *Lobby
 }
 
 func NewManager() *Manager {
+	lobby := &Lobby{userList: make(OnlineList)}
+	timer := &Timer{lobby: lobby, C: make(chan models.LobbyState)}
+	timer.state = newAwaitingPlayersState(timer)
+	lobby.timer = timer
+
 	m := &Manager{
 		clients:  make(ClientList),
 		handlers: make(map[string]EventHandler),
+		Lobby:    lobby,
 	}
 	m.setupEventHandlers()
 
@@ -76,6 +83,11 @@ func (m *Manager) addClient(client *Client) {
 func (m *Manager) removeClient(client *Client) {
 	m.Lock()
 	defer m.Unlock()
+
+	if client.lobby != nil {
+		client.lobby.removePlayer(client.username)
+		client.lobby = nil
+	}
 
 	if _, ok := m.clients[client]; ok {
 		client.connection.Close()
@@ -140,15 +152,6 @@ func (m *Manager) ServeWS(w http.ResponseWriter, r *http.Request) {
 	//
 	// broadcastClientInfo(m, username)
 	// broadcastOnlineUserList(m)
-}
-
-func (m *Manager) usernameInClients(username string) bool {
-	for client := range m.clients {
-		if client.username == username {
-			return true
-		}
-	}
-	return false
 }
 
 func (m *Manager) GetClientById(id int) *Client {

@@ -1,4 +1,8 @@
-import Gachi, { useEffect, useState } from "../../Gachi.js/src/core/framework";
+import Gachi, {
+  useEffect,
+  useState,
+  useContext,
+} from "../../Gachi.js/src/core/framework";
 import { subscribe, ws } from "../../additional-functions/websocket";
 
 import "./lobby.css";
@@ -6,11 +10,11 @@ import "./lobby.css";
 const maxUsers = 4;
 const states = {
   awaiting_players_state: "Wait players to suck cock",
-  closing_lobby_state: "Time to close lobby!",
-  starting_game_state: "Gays starts in...",
+  closing_lobby_state: "Time to suck some dick!",
+  starting_game_state: "Gays sex starts in...",
 };
-
 export default function Lobby() {
+  const navigate = useContext("switchPage");
   const [messages, setMessages] = useState([]);
   const [timer, setTimer] = useState({ state: "", currentTime: 0 });
   const [players, setPlayers] = useState([]);
@@ -37,6 +41,12 @@ export default function Lobby() {
     subscribe("ama_boy_next_door", ({ state, currentTime }) => {
       console.log(currentTime, state);
       setTimer({ state, currentTime });
+    });
+
+    subscribe("game_state", ({ state }) => {
+      if (state === "game_page") {
+        navigate("game");
+      }
     });
   }, []);
 

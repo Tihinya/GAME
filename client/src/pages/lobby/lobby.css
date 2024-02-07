@@ -110,6 +110,9 @@
 .main-page-lobby-timer {
   display: flex;
   flex-direction: column;
+
+  padding: 10px;
+
   width: 100%;
   height: fit-content;
 
@@ -124,6 +127,8 @@
 .main-page-lobby-players {
   display: flex;
   flex-direction: column;
+
+  padding: 10px;
 
   width: 100%;
   height: fit-content;

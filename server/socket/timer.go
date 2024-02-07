@@ -134,16 +134,17 @@ func (s StartingGameState) startTimer(countdown int) {
 			s.resetTimer()
 			s.timer.changeState(newAwaitingPlayersState(s.timer))
 			return
-		} else if playersAmount == 4 {
-			s.resetTimer()
-			s.timer.changeState(newStartingGameState(s.timer))
-			return
 		} else if s.timer.currentTime == 0 {
-			s.resetTimer()
 			// s.timer.changeState(newStartingGameState(s.timer))
 			// move to game
-			s.timer.lobby.userList = make(OnlineList)
-			log.Println("You won my cock!")
+			for _, c := range s.timer.lobby.userList {
+				c.egress <- SerializeData(GameEventGameState, models.ChangeState{State: "game_page"})
+				s.timer.instance.Stop()
+			}
+			// s.timer.lobby.userList = make(OnlineList)
+			// StartGame()
+			s.timer.lobby.removeAllPlayers()
+			log.Println(s.timer.lobby)
 			return
 		}
 
@@ -159,4 +160,5 @@ func (s StartingGameState) resetTimer() {
 	s.timer.instance.Stop()
 	s.timer.currentTime = 0
 	close(s.timer.C)
+
 }

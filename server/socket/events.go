@@ -3,6 +3,7 @@ package socket
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
@@ -56,12 +57,10 @@ func MessageHandler(event Event, c *Client) error {
 		return fmt.Errorf("failed to marshal broadcast message: %v", err)
 	}
 
-	for client := range c.manager.clients {
-		client.egress <- Event{
-			Type:    EventReceiveMessage,
-			Payload: data,
-		}
-	}
+	c.manager.Lobby.broadcastMessage(Event{
+		Type:    EventReceiveMessage,
+		Payload: data,
+	})
 
 	return nil
 }
@@ -73,12 +72,14 @@ func UsernameHandler(event Event, c *Client) error {
 	}
 	adduserEvent.UserName = strings.TrimSpace(adduserEvent.UserName)
 
+	log.Println("connect", c.manager.Lobby)
+
 	if adduserEvent.UserName == "" || c.manager.Lobby.isUsernameExists(adduserEvent.UserName) {
 		c.egress <- SerializeData(GameEventGameState, models.Response{Status: "Индус", Message: "ПОШЛИ НАХУЙ"})
 		return fmt.Errorf("username is empty or username already taken")
 	}
 
-	if c.manager.Lobby.getAmountOfPlayers() > 4 {
+	if c.manager.Lobby.getAmountOfPlayers() >= 4 {
 		c.egress <- SerializeData(GameEventGameState, models.Response{Status: "Индус", Message: "СЕЛ НАХУЙ"})
 		return fmt.Errorf("too many players")
 	}

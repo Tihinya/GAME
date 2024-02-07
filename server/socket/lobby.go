@@ -2,12 +2,12 @@ package socket
 
 import (
 	"bomberman-dom/models"
-	"log"
 )
 
 type Lobby struct {
 	timer    *Timer
 	userList OnlineList
+	manager  *Manager
 }
 
 func (l *Lobby) startLobby() {
@@ -19,7 +19,6 @@ func (l *Lobby) startLobby() {
 		l.timer.C = make(chan models.LobbyState)
 		go l.timer.startTimer(0)
 		for lobbyState := range l.timer.C {
-			log.Println("aboba", lobbyState)
 			l.broadcastMessage(SerializeData("ama_boy_next_door", lobbyState))
 		}
 	}
@@ -44,7 +43,16 @@ func (l *Lobby) addPlayer(c *Client) {
 }
 
 func (l *Lobby) removePlayer(username string) {
+	l.manager.RWMutex.Lock()
+	defer l.manager.RWMutex.Unlock()
+
 	delete(l.userList, username)
+}
+
+func (l *Lobby) removeAllPlayers() {
+	for username := range l.userList {
+		l.removePlayer(username)
+	}
 }
 
 func (l *Lobby) broadcastMessage(data Event) {

@@ -47,6 +47,7 @@ func NewManager() *Manager {
 		handlers: make(map[string]EventHandler),
 		Lobby:    lobby,
 	}
+	lobby.manager = m
 	m.setupEventHandlers()
 
 	return m
@@ -75,19 +76,17 @@ func (m *Manager) routeEvent(event Event, c *Client) error {
 }
 
 func (m *Manager) addClient(client *Client) {
-	m.Lock()
-	defer m.Unlock()
 	m.clients[client] = true
 }
 
 func (m *Manager) removeClient(client *Client) {
-	m.Lock()
-	defer m.Unlock()
-
 	if client.lobby != nil {
 		client.lobby.removePlayer(client.username)
 		client.lobby = nil
 	}
+
+	m.Lock()
+	defer m.Unlock()
 
 	if _, ok := m.clients[client]; ok {
 		client.connection.Close()

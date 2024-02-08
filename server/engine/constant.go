@@ -45,20 +45,23 @@ var (
 	player1Spawny = 5.0
 )
 
-func CreatePlayer() *Entity {
+func CreatePlayer(socketId int) *Entity {
 	player := entityManager.CreateEntity()
 
+	playerUser := &UserEntityComponent{entity: player}
 	playerPosition := &PositionComponent{X: player1SpawnX, Y: player1Spawny, Size: componentSize}
 	playerMotion := &MotionComponent{Velocity: Vec2{X: 0, Y: 0}, Acceleration: Vec2{X: 0, Y: 0}}
 	playerInput := &InputComponent{Input: map[string]bool{}}
 	playerHealth := &HealthComponent{CurrentHealth: playerMaxHealth, MaxHealth: playerMaxHealth}
 	playerPowerUps := &PowerUpComponent{ExtraBombs: 0, ExtraExplosionRange: 0, ExtraSpeed: 0}
 
+	userEntityManager.AddComponent(socketId, playerUser)
 	positionManager.AddComponent(player, playerPosition)
 	motionManager.AddComponent(player, playerMotion)
 	inputManager.AddComponent(player, playerInput)
 	healthManager.AddComponent(player, playerHealth)
 	powerUpManager.AddComponent(player, playerPowerUps)
+	broadcastPlayerCreation(playerPosition.X, playerPosition.Y, socketId)
 
 	return player
 }
@@ -69,11 +72,15 @@ func CreateBomb(player *Entity) *Entity {
 	pc := positionManager.GetPosition(player)
 	puc := powerUpManager.powerUps[player]
 
+	bombManager.mutex.RLock()
 	for _, bc := range bombManager.bombs {
+		bombManager.mutex.RUnlock()
 		if bc.Owner == player {
 			playerActiveBombs++
 		}
+		bombManager.mutex.RLock()
 	}
+	bombManager.mutex.RUnlock()
 
 	if !(playerActiveBombs < (1 + puc.ExtraBombs)) {
 		return nil
@@ -94,6 +101,8 @@ func CreateBomb(player *Entity) *Entity {
 	timerManager.AddComponent(bomb, bombTimer)
 	positionManager.AddComponent(bomb, bombPosition)
 	bombManager.AddComponent(bomb, bombComponent)
+
+	broadcastBomb(pc.X, pc.Y, "create")
 
 	return bomb
 }
@@ -137,8 +146,6 @@ func createExplosionAtPosition(pos *PositionComponent) {
 }
 
 func CreateExplosion(positionComponent *PositionComponent) {
-	// Collision check here idk how tf to do it
-
 	explosion := entityManager.CreateEntity()
 
 	explosionComponent := &ExplosionComponent{}
@@ -150,15 +157,20 @@ func CreateExplosion(positionComponent *PositionComponent) {
 	positionManager.AddComponent(explosion, explosionPosition)
 	damageManager.AddComponent(explosion, explosionDamage)
 	explosionManager.AddComponent(explosion, explosionComponent)
+
+	broadcastExplosion(positionComponent.X, positionComponent.Y, "create")
 }
 
-func CreatePowerUp(powerUpName uint) *Entity {
+func CreatePowerUp(powerUpName int) *Entity {
 	powerUp := entityManager.CreateEntity()
 
 	powerUpPosition := &PositionComponent{}
-	// powerUpProperty := &PowerUpComponent{Name: powerUpName}
+	powerUpProperty := &PowerUpComponent{Name: powerUpName}
+
 	positionManager.AddComponent(powerUp, powerUpPosition)
-	// powerUpManager.AddComponent(powerUp, powerUpProperty)
+	powerUpManager.AddComponent(powerUp, powerUpProperty)
+
+	broadcastPowerup(powerUpPosition.X, powerUpPosition.Y, powerUpName, "create")
 
 	return powerUp
 }
@@ -171,6 +183,8 @@ func CreateWall(X, Y float64) *Entity {
 
 	positionManager.AddComponent(wall, playerPosition)
 	wallManager.AddComponent(wall, wallIdentifier)
+
+	broadcastObstacle(X, Y, "wall", "create")
 
 	return wall
 }
@@ -185,6 +199,8 @@ func CreateBox(X, Y float64) *Entity {
 	positionManager.AddComponent(box, playerPosition)
 	healthManager.AddComponent(box, playerHealth)
 	boxManager.AddComponent(box, boxIdentifier)
+
+	broadcastObstacle(X, Y, "box", "create")
 
 	return box
 }

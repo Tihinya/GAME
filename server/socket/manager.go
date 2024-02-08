@@ -1,7 +1,6 @@
 package socket
 
 import (
-	"encoding/json"
 	"errors"
 	"log"
 	"net/http"
@@ -26,7 +25,8 @@ var (
 type Manager struct {
 	clients ClientList
 	sync.RWMutex
-	handlers map[string]EventHandler
+	handlers    map[string]EventHandler
+	Broadcaster helpers.Broadcaster
 }
 
 func NewManager() *Manager {
@@ -41,15 +41,10 @@ func NewManager() *Manager {
 
 func (m *Manager) setupEventHandlers() {
 	m.handlers[EventSendMessage] = SendMessageHandler
-	m.handlers[GameEventNotification] = GameNotificationHandler
-	m.handlers[GameEventMovePlayer] = GameMoveHandler
-	m.handlers[GameEventGameState] = GameStateHandler
-	m.handlers[GameEventBomb] = GameBombHandler
-	m.handlers[GameEventObstacle] = GameObstacleHandler
-	m.handlers[GameEventPowerup] = GamePowerupHandler
+	m.handlers[GameEventInput] = GameInputHandler
 }
 
-func (m *Manager) routeEvent(event Event, c *Client) error {
+func (m *Manager) routeEvent(event models.Event, c *Client) error {
 	if handler, ok := m.handlers[event.Type]; ok {
 		if err := handler(event, c); err != nil {
 			return err
@@ -76,7 +71,7 @@ func (m *Manager) removeClient(client *Client) {
 	}
 }
 
-func (m *Manager) GetConnectedClient(username string) Event {
+func (m *Manager) GetConnectedClient(username string) models.Event {
 	var clientInfo models.ClientInfo
 
 	for client := range m.clients {
@@ -89,10 +84,10 @@ func (m *Manager) GetConnectedClient(username string) Event {
 		}
 	}
 
-	return SerializeData(EventClientInfoMessage, clientInfo)
+	return helpers.SerializeData(EventClientInfoMessage, clientInfo)
 }
 
-func (m *Manager) GetConnectedClients() Event {
+func (m *Manager) GetConnectedClients() models.Event {
 	var onlineUserList models.ConnectedUserListEvent
 	onlineUserList.List = make(map[int]string)
 
@@ -100,7 +95,7 @@ func (m *Manager) GetConnectedClients() Event {
 		onlineUserList.List[client.id] = client.username
 	}
 
-	return SerializeData(EventOnlineUserList, onlineUserList)
+	return helpers.SerializeData(EventOnlineUserList, onlineUserList)
 }
 
 func (m *Manager) ServeWS(w http.ResponseWriter, r *http.Request) {
@@ -165,20 +160,4 @@ func (m *Manager) GetClientByUsername(username string) *Client {
 func idCounter() int {
 	UserIdCounter++
 	return UserIdCounter
-}
-
-func SerializeData(EventType string, data ...any) Event {
-	if len(data) == 1 {
-		jsonData, err := json.Marshal(data[0])
-		if err != nil {
-			log.Printf("failed to marshal online user list: %v", err)
-		}
-
-		var outgoingEvent Event
-		outgoingEvent.Payload = jsonData
-		outgoingEvent.Type = EventType
-
-		return outgoingEvent
-	}
-	return Event{}
 }

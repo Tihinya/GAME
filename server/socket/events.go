@@ -10,16 +10,20 @@ import (
 )
 
 const (
-	EventSendMessage       = "send_message"      // Event for sending messages
-	EventOnlineUserList    = "online_users_list" // Event for receiving connected user list
-	EventReceiveMessage    = "receive_message"   // Event for receiving messages
-	EventClientInfoMessage = "client_info"       // Displays username, id on user connect
-	GameEventNotification  = "game_notification" // For backend error logs (maybe?)
-	GameEventMovePlayer    = "game_move"         // Move - up, down, left, right
-	GameEventGameState     = "game_state"        // State - lobby, start, end
-	GameEventBomb          = "game_bomb"         // Bomb - place, explode
-	GameEventObstacle      = "game_obstacle"     // Obstacles - boxes, powerups
-	GameEventPowerup       = "game_powerup"      // Powerup - pickup
+	EventSendMessage        = "send_message"         // Event for sending messages
+	EventOnlineUserList     = "online_users_list"    // Event for receiving connected user list
+	EventReceiveMessage     = "receive_message"      // Event for receiving messages
+	EventClientInfoMessage  = "client_info"          // Displays username, id on user connect
+	GameEventError          = "game_error"           // For backend error logs
+	GameEventInput          = "game_input"           // Input - up, down, left, right, place
+	GameEventGameState      = "game_state"           // State - lobby, start, end
+	GameEventBomb           = "game_bomb"            // Bomb - place, explode
+	GameEventObstacle       = "game_obstacle"        // Obstacles - boxes, powerups
+	GameEventPowerup        = "game_powerup"         // Powerup - pickup
+	GameEventExplosion      = "game_event"           // Explosion - appear, disappear
+	GameEventPlayerMotion   = "game_player_position" // Player motion - position
+	GameEventPlayerHealth   = "game_player_health"   // Player health - health
+	GameEventPlayerCreation = "game_player_creation" // Player creation - X, Y
 )
 
 type Event struct {
@@ -27,9 +31,9 @@ type Event struct {
 	Payload json.RawMessage `json:"payload"`
 }
 
-type EventHandler func(event Event, c *Client) error
+type EventHandler func(event models.Event, c *Client) error
 
-func SendMessageHandler(event Event, c *Client) error {
+func SendMessageHandler(event models.Event, c *Client) error {
 	var chatEvent models.SendMessageEvent
 	if err := json.Unmarshal(event.Payload, &chatEvent); err != nil {
 		return fmt.Errorf("bad payload in request: %v", err)
@@ -51,7 +55,7 @@ func SendMessageHandler(event Event, c *Client) error {
 		return fmt.Errorf("failed to marshal broadcast message: %v", err)
 	}
 
-	var outgoingEvent Event = Event{
+	var outgoingEvent models.Event = models.Event{
 		Type:    EventReceiveMessage,
 		Payload: data,
 	}
@@ -61,6 +65,27 @@ func SendMessageHandler(event Event, c *Client) error {
 	}
 
 	return nil
+}
+
+func (m *Manager) BroadcastClient(event models.Event, clientId int) {
+	m.Lock()
+	defer m.Unlock()
+
+	user := m.GetClientById(clientId)
+	for client := range m.clients {
+		if client.username == user.username {
+			client.egress <- event
+		}
+	}
+}
+
+func (m *Manager) BroadcastAllClients(event models.Event) {
+	m.Lock()
+	defer m.Unlock()
+
+	for client := range m.clients {
+		client.egress <- event
+	}
 }
 
 func broadcastClientInfo(m *Manager, username string) {

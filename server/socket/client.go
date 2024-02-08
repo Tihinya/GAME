@@ -1,6 +1,7 @@
 package socket
 
 import (
+	"bomberman-dom/models"
 	"encoding/json"
 	"log"
 	"time"
@@ -13,7 +14,7 @@ type (
 	Client     struct {
 		connection *websocket.Conn
 		manager    *Manager
-		egress     chan Event
+		egress     chan models.Event
 		id         int // Unique identifier for the client
 		username   string
 	}
@@ -29,7 +30,7 @@ func NewClient(conn *websocket.Conn, manager *Manager, username string, id int) 
 	return &Client{
 		connection: conn,
 		manager:    manager,
-		egress:     make(chan Event),
+		egress:     make(chan models.Event),
 		username:   username,
 		id:         id,
 	}
@@ -56,7 +57,7 @@ func (c *Client) readMessages() {
 			}
 			break
 		}
-		var request Event
+		var request models.Event
 		if err := json.Unmarshal(payload, &request); err != nil {
 			log.Printf("error marshalling message: %v", err)
 			continue

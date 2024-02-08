@@ -1,8 +1,16 @@
 package models
 
-import "time"
+import (
+	"encoding/json"
+	"time"
+)
 
 //-- Socket Events --\\
+
+type Event struct {
+	Type    string          `json:"type"`
+	Payload json.RawMessage `json:"payload"`
+}
 
 type SendMessageEvent struct {
 	Message  string    `json:"message"`
@@ -24,6 +32,56 @@ type ReceivedMessage struct {
 type ClientInfo struct {
 	Username string `json:"username"`
 	Id       int    `json:"id"`
+}
+
+type GameState struct { // game_state
+	State string `json:"game_state"` // "STARTED", "PAUSED", "ENDED"
+}
+
+type GameInput struct { // game_input
+	Keys map[string]bool `json:"keys"`
+}
+
+type GameBomb struct { // game_bomb
+	Action string  `json:"action"` // create, delete
+	X      float64 `json:"x"`
+	Y      float64 `json:"y"`
+}
+
+type GameExplosion struct { // game_explosion
+	Action string  `json:"action"` // create, delete
+	X      float64 `json:"x"`
+	Y      float64 `json:"y"`
+}
+
+type GameError struct { // game_error
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+}
+
+type GameObstacle struct { // game_obstacle
+	Type   string  `json:"type"`   // box, wall, powerup
+	Action string  `json:"action"` // create, delete
+	X      float64 `json:"x"`
+	Y      float64 `json:"y"`
+}
+
+type GamePowerup struct { // game_powerup
+	Type   int     `json:"type"`   // speed(1), bomb(2), health(3), explosion(4)
+	Action string  `json:"action"` // create, delete
+	X      float64 `json:"x"`
+	Y      float64 `json:"y"`
+}
+
+type GamePlayer struct { // game_player_creation & game_player_position
+	ClientId int     `json:"clientId"`
+	X        float64 `json:"x"`
+	Y        float64 `json:"y"`
+}
+
+type GamePlayerHealth struct {
+	ClientId int `json:"clientId"`
+	Health   int `json:"health"`
 }
 
 //-- Miscellaneous --\\

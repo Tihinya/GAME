@@ -1,25 +1,20 @@
 package socket
 
-func GameStateHandler(event Event, c *Client) error {
-	return nil
-}
+import (
+	"encoding/json"
+	"fmt"
 
-func GameMoveHandler(event Event, c *Client) error {
-	return nil
-}
+	"bomberman-dom/engine"
+	"bomberman-dom/models"
+)
 
-func GameBombHandler(event Event, c *Client) error {
-	return nil
-}
+func GameInputHandler(event models.Event, c *Client) error {
+	var gameInput models.GameInput
+	if err := json.Unmarshal(event.Payload, &gameInput); err != nil {
+		return fmt.Errorf("GameInputHandler - bad payload in request: %v", err)
+	}
 
-func GameObstacleHandler(event Event, c *Client) error {
-	return nil
-}
+	engine.HandleInput(gameInput, c.id)
 
-func GamePowerupHandler(event Event, c *Client) error {
-	return nil
-}
-
-func GameNotificationHandler(event Event, c *Client) error {
 	return nil
 }

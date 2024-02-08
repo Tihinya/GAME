@@ -19,7 +19,7 @@ func (l *Lobby) startLobby() {
 		l.timer.C = make(chan models.LobbyState)
 		go l.timer.startTimer(0)
 		for lobbyState := range l.timer.C {
-			l.broadcastMessage(SerializeData("ama_boy_next_door", lobbyState))
+			l.BroadcastAllClients(SerializeData("ama_boy_next_door", lobbyState))
 		}
 	}
 }
@@ -55,7 +55,7 @@ func (l *Lobby) removeAllPlayers() {
 	}
 }
 
-func (l *Lobby) broadcastMessage(data Event) {
+func (l *Lobby) BroadcastAllClients(data models.Event) {
 	for _, client := range l.userList {
 		client.egress <- data
 	}

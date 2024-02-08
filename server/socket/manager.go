@@ -6,8 +6,8 @@ import (
 	"log"
 	"net/http"
 	"sync"
-	"time"
 
+	"bomberman-dom/helpers"
 	"bomberman-dom/models"
 
 	"github.com/gorilla/websocket"
@@ -22,18 +22,13 @@ var (
 	Instance             *Manager
 )
 
-type Message struct {
-	Name    string
-	Time    time.Time
-	Message string
-}
-
 type Manager struct {
 	clients ClientList
 	sync.RWMutex
-	handlers map[string]EventHandler
-	UserId   int
-	Lobby    *Lobby
+	handlers    map[string]EventHandler
+	UserId      int
+	Lobby       *Lobby
+	Broadcaster helpers.Broadcaster
 }
 
 func NewManager() *Manager {
@@ -55,16 +50,12 @@ func NewManager() *Manager {
 
 func (m *Manager) setupEventHandlers() {
 	m.handlers[EventSendMessage] = MessageHandler
-	m.handlers[GameEventNotification] = GameNotificationHandler
-	m.handlers[GameEventMovePlayer] = GameMoveHandler
 	m.handlers[GameEventGameState] = GameStateHandler
-	m.handlers[GameEventBomb] = GameBombHandler
-	m.handlers[GameEventObstacle] = GameObstacleHandler
-	m.handlers[GameEventPowerup] = GamePowerupHandler
 	m.handlers[EventLoginHandler] = UsernameHandler
+	m.handlers[GameEventInput] = GameInputHandler
 }
 
-func (m *Manager) routeEvent(event Event, c *Client) error {
+func (m *Manager) routeEvent(event models.Event, c *Client) error {
 	if handler, ok := m.handlers[event.Type]; ok {
 		if err := handler(event, c); err != nil {
 			return err
@@ -96,7 +87,7 @@ func (m *Manager) removeClient(client *Client) {
 	broadcastOnlineUserList(m)
 }
 
-func (m *Manager) GetConnectedClient(username string) Event {
+func (m *Manager) GetConnectedClient(username string) models.Event {
 	var clientInfo models.ClientInfo
 
 	for client := range m.clients {
@@ -109,10 +100,10 @@ func (m *Manager) GetConnectedClient(username string) Event {
 		}
 	}
 
-	return SerializeData(EventClientInfoMessage, clientInfo)
+	return helpers.SerializeData(EventClientInfoMessage, clientInfo)
 }
 
-func (m *Manager) GetConnectedClients() Event {
+func (m *Manager) GetConnectedClients() models.Event {
 	var onlineUserList models.ConnectedUserListEvent
 	onlineUserList.List = make(map[int]string)
 
@@ -122,7 +113,7 @@ func (m *Manager) GetConnectedClients() Event {
 		}
 	}
 
-	return SerializeData(EventOnlineUserList, onlineUserList)
+	return helpers.SerializeData(EventOnlineUserList, onlineUserList)
 }
 
 func (m *Manager) ServeWS(w http.ResponseWriter, r *http.Request) {
@@ -171,18 +162,19 @@ func (m *Manager) GetClientByUsername(username string) *Client {
 	return nil
 }
 
-func SerializeData(EventType string, data ...any) Event {
-	if len(data) == 1 {
-		jsonData, err := json.Marshal(data[0])
-		if err != nil {
-			log.Printf("failed to marshal online user list: %v", err)
-		}
-
-		var outgoingEvent Event
-		outgoingEvent.Payload = jsonData
-		outgoingEvent.Type = EventType
-
-		return outgoingEvent
+func SerializeData(EventType string, data ...any) models.Event {
+	if len(data) < 1 {
+		return models.Event{}
 	}
-	return Event{}
+
+	jsonData, err := json.Marshal(data[0])
+	if err != nil {
+		log.Printf("failed to marshal online user list: %v", err)
+	}
+
+	var outgoingEvent models.Event
+	outgoingEvent.Payload = jsonData
+	outgoingEvent.Type = EventType
+
+	return outgoingEvent
 }

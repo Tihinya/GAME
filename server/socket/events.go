@@ -11,28 +11,29 @@ import (
 )
 
 const (
-	EventSendMessage       = "send_message" // Event for sending messages
-	EventAmaBoy            = "ama_boy_next_door"
-	EventOnlineUserList    = "online_users_list" // Event for receiving connected user list
-	EventReceiveMessage    = "receive_message"   // Event for receiving messages
-	EventClientInfoMessage = "client_info"       // Displays username, id on user connect
-	GameEventNotification  = "game_notification" // For backend error logs (maybe?)
-	GameEventMovePlayer    = "game_move"         // Move - up, down, left, right
-	GameEventGameState     = "game_state"        // State - lobby, start, end
-	GameEventBomb          = "game_bomb"         // Bomb - place, explode
-	GameEventObstacle      = "game_obstacle"     // Obstacles - boxes, powerups
-	GameEventPowerup       = "game_powerup"      // Powerup - pickup
-	EventLoginHandler      = "register_user"     // Register user
+	EventSendMessage        = "send_message" // Event for sending messages
+	EventAmaBoy             = "ama_boy_next_door"
+	GameEventNotification   = "game_notification"    // For backend error logs (maybe?)
+	GameEventMovePlayer     = "game_move"            // Move - up, down, left, right
+	EventLoginHandler       = "register_user"        // Register user
+	EventOnlineUserList     = "online_users_list"    // Event for receiving connected user list
+	EventReceiveMessage     = "receive_message"      // Event for receiving messages
+	EventClientInfoMessage  = "client_info"          // Displays username, id on user connect
+	GameEventError          = "game_error"           // For backend error logs
+	GameEventInput          = "game_input"           // Input - up, down, left, right, place
+	GameEventGameState      = "game_state"           // State - lobby, start, end
+	GameEventBomb           = "game_bomb"            // Bomb - place, explode
+	GameEventObstacle       = "game_obstacle"        // Obstacles - boxes, powerups
+	GameEventPowerup        = "game_powerup"         // Powerup - pickup
+	GameEventExplosion      = "game_event"           // Explosion - appear, disappear
+	GameEventPlayerMotion   = "game_player_position" // Player motion - position
+	GameEventPlayerHealth   = "game_player_health"   // Player health - health
+	GameEventPlayerCreation = "game_player_creation" // Player creation - X, Y
 )
 
-type Event struct {
-	Type    string          `json:"type"`
-	Payload json.RawMessage `json:"payload"`
-}
+type EventHandler func(event models.Event, c *Client) error
 
-type EventHandler func(event Event, c *Client) error
-
-func MessageHandler(event Event, c *Client) error {
+func MessageHandler(event models.Event, c *Client) error {
 	var message models.MessageEvent
 	if err := json.Unmarshal(event.Payload, &message); err != nil {
 		return fmt.Errorf("bad payload in request: %v", err)
@@ -43,7 +44,7 @@ func MessageHandler(event Event, c *Client) error {
 		return nil
 	}
 
-	message.SentTime = time.Now()
+	message.Time = time.Now()
 
 	// connection must have a name to send message
 	if c.username == "" {
@@ -57,7 +58,7 @@ func MessageHandler(event Event, c *Client) error {
 		return fmt.Errorf("failed to marshal broadcast message: %v", err)
 	}
 
-	c.manager.Lobby.broadcastMessage(Event{
+	c.manager.Lobby.BroadcastAllClients(models.Event{
 		Type:    EventReceiveMessage,
 		Payload: data,
 	})
@@ -65,7 +66,7 @@ func MessageHandler(event Event, c *Client) error {
 	return nil
 }
 
-func UsernameHandler(event Event, c *Client) error {
+func UsernameHandler(event models.Event, c *Client) error {
 	var adduserEvent models.AddUsernameEvent
 	if err := json.Unmarshal(event.Payload, &adduserEvent); err != nil {
 		return fmt.Errorf("bad payload in request: %v", err)

@@ -64,6 +64,10 @@ type WallManager struct {
 	mutex sync.RWMutex
 	walls map[*Entity]*WallComponent
 }
+type UserEntityManager struct {
+	users map[int]*UserEntityComponent
+	mutex sync.RWMutex
+}
 
 // --------------------------------
 // Systems
@@ -247,6 +251,12 @@ func NewWallManager() *WallManager {
 	}
 }
 
+func NewUserEntityManager() *UserEntityManager {
+	return &UserEntityManager{
+		users: make(map[int]*UserEntityComponent),
+	}
+}
+
 // --------------------------------
 // Add Component functions
 // --------------------------------
@@ -327,6 +337,12 @@ func (wallManager *WallManager) AddComponent(entity *Entity, component *WallComp
 	wallManager.mutex.Lock()
 	defer wallManager.mutex.Unlock()
 	wallManager.walls[entity] = component
+}
+
+func (UserEntityManager *UserEntityManager) AddComponent(userId int, component *UserEntityComponent) {
+	UserEntityManager.mutex.Lock()
+	defer UserEntityManager.mutex.Unlock()
+	UserEntityManager.users[userId] = component
 }
 
 // --------------------------------
@@ -411,6 +427,12 @@ func (wallManager *WallManager) DeleteComponent(entity *Entity) {
 	delete(wallManager.walls, entity)
 }
 
+func (UserEntityManager *UserEntityManager) DeleteComponent(userId int) {
+	UserEntityManager.mutex.Lock()
+	defer UserEntityManager.mutex.Unlock()
+	delete(UserEntityManager.users, userId)
+}
+
 // --------------------------------
 // Get manager components
 // --------------------------------
@@ -452,6 +474,32 @@ func (m *WallManager) GetWall(entity *Entity) *WallComponent {
 	return m.walls[entity]
 }
 
+func (m *InputManager) GetInputs(entity *Entity) *InputComponent {
+	m.mutex.RLock()
+	defer m.mutex.RUnlock()
+	return m.inputs[entity]
+}
+
+func (m *UserEntityManager) GetUserEntity(userId int) *UserEntityComponent {
+	m.mutex.RLock()
+	defer m.mutex.RUnlock()
+	return m.users[userId]
+}
+
+// Not sure about this function, since reverse map lookups are inefficient,
+// need to check in real-time if this lags the game or not
+func (m *UserEntityManager) GetUserIdByEntity(entity *Entity) int {
+	m.mutex.RLock()
+	defer m.mutex.RUnlock()
+
+	for userId, ent := range m.users {
+		if ent.entity == entity {
+			return userId
+		}
+	}
+	return 0
+}
+
 // --------------------------------
 // Set manager components
 // --------------------------------
@@ -478,6 +526,18 @@ func (m *BoxManager) SetBox(entity *Entity, Box *BoxComponent) {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 	m.boxes[entity] = Box
+}
+
+func (m *InputManager) SetInputs(entity *Entity, inputs *InputComponent) {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+	m.inputs[entity] = inputs
+}
+
+func (m *UserEntityManager) SetUserEntity(userId int, user *UserEntityComponent) {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+	m.users[userId] = user
 }
 
 // --------------------------------

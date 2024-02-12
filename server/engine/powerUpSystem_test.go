@@ -5,8 +5,8 @@ import (
 )
 
 func TestSpeedPowerUpSystem(t *testing.T) {
-	player := entityManager.CreateEntity()
-	powerUp := entityManager.CreateEntity()
+	player := entityManager.CreateEntity("player")
+	powerUp := entityManager.CreateEntity("powerup")
 	defer func() {
 		DeleteAllEntityComponents(player)
 		DeleteAllEntityComponents(powerUp)
@@ -32,8 +32,8 @@ func TestSpeedPowerUpSystem(t *testing.T) {
 	playerPc := positionManager.positions[player]
 
 	for i := 0; i < 3; i++ {
-		inputSystem.update(0.1)
-		motionSystem.update(0.1)
+		CallInputSystem.Update(0.1)
+		CallMotionSystem.Update(0.1)
 
 	}
 
@@ -51,9 +51,9 @@ func TestSpeedPowerUpSystem(t *testing.T) {
 }
 
 func TestHealthPowerUpSystem(t *testing.T) {
-	player := entityManager.CreateEntity()
-	healthPowerUp1 := entityManager.CreateEntity()
-	healthPowerUp2 := entityManager.CreateEntity()
+	player := entityManager.CreateEntity("player")
+	healthPowerUp1 := entityManager.CreateEntity("powerup")
+	healthPowerUp2 := entityManager.CreateEntity("powerup")
 
 	defer func() {
 		DeleteAllEntityComponents(player)
@@ -89,9 +89,9 @@ func TestHealthPowerUpSystem(t *testing.T) {
 	inputManager.AddComponent(player, playerInput)
 
 	for i := 0; i < 3; i++ {
-		inputSystem.update(0.1)
-		motionSystem.update(0.1)
-		healthSystem.update(0.1)
+		CallInputSystem.Update(0.1)
+		CallMotionSystem.Update(0.1)
+		CallHealthSystem.Update(0.1)
 
 	}
 	playerPc := positionManager.positions[player]
@@ -110,8 +110,8 @@ func TestHealthPowerUpSystem(t *testing.T) {
 }
 
 func TestBombPowerUpSystem(t *testing.T) {
-	player := entityManager.CreateEntity()
-	bombPowerUp := entityManager.CreateEntity()
+	player := entityManager.CreateEntity("powerup")
+	bombPowerUp := entityManager.CreateEntity("bomb")
 	defer func() {
 		DeleteAllEntityComponents(player)
 		DeleteAllEntityComponents(bombPowerUp)
@@ -138,8 +138,8 @@ func TestBombPowerUpSystem(t *testing.T) {
 	inputManager.AddComponent(player, playerInput)
 
 	for i := 0; i < 3; i++ {
-		inputSystem.update(0.1)
-		motionSystem.update(0.1)
+		CallInputSystem.Update(0.1)
+		CallMotionSystem.Update(0.1)
 
 	}
 
@@ -159,8 +159,8 @@ func TestBombPowerUpSystem(t *testing.T) {
 }
 
 func TestExplosionPowerUpSystem(t *testing.T) {
-	player := entityManager.CreateEntity()
-	ExplosionPowerUp := entityManager.CreateEntity()
+	player := entityManager.CreateEntity("player")
+	ExplosionPowerUp := entityManager.CreateEntity("explosion")
 	defer func() {
 		DeleteAllEntityComponents(player)
 		DeleteAllEntityComponents(ExplosionPowerUp)
@@ -187,8 +187,8 @@ func TestExplosionPowerUpSystem(t *testing.T) {
 	inputManager.AddComponent(player, playerInput)
 
 	for i := 0; i < 3; i++ {
-		inputSystem.update(0.1)
-		motionSystem.update(0.1)
+		CallInputSystem.Update(0.1)
+		CallMotionSystem.Update(0.1)
 
 	}
 

@@ -4,6 +4,14 @@ import Gachi, {
   useContext,
 } from "../../Gachi.js/src/core/framework";
 import { subscribe, ws } from "../../additional-functions/websocket";
+import {
+  ChatMessage,
+  EventType,
+  Page,
+  PageState,
+  Players,
+  TimeCountdown,
+} from "../../types/Types";
 
 import "./lobby.css";
 
@@ -15,13 +23,17 @@ const states = {
 };
 export default function Lobby() {
   const navigate = useContext("switchPage");
-  const [messages, setMessages] = useState([]);
-  const [timer, setTimer] = useState({ state: "", currentTime: 0 });
-  const [players, setPlayers] = useState([]);
+  const [messages, setMessages] = useState<
+    { username: string; content: string }[]
+  >([]);
+  const [timer, setTimer] = useState<TimeCountdown>({
+    state: "",
+    currentTime: 0,
+  });
+  const [players, setPlayers] = useState<{ username: string }[]>([]);
 
   useEffect(() => {
-    subscribe("online_users_list", (list) => {
-      console.log(list);
+    subscribe(EventType.EventOnlineUserList, (list: Players) => {
       const onlineList = Object.keys(list).map((username) => ({
         username: username,
       }));
@@ -29,23 +41,29 @@ export default function Lobby() {
       setPlayers(onlineList);
     });
 
-    subscribe("receive_message", ({ name, message }) => {
-      setMessages((prev) => {
-        const temp = [...prev];
-        temp.unshift({ username: name, content: message });
+    subscribe(
+      EventType.EventReceiveMessage,
+      ({ name, message }: ChatMessage) => {
+        setMessages((prev) => {
+          const temp = [...prev];
+          temp.unshift({ username: name, content: message });
 
-        return temp;
-      });
-    });
+          return temp;
+        });
+      }
+    );
 
-    subscribe("ama_boy_next_door", ({ state, currentTime }) => {
-      console.log(currentTime, state);
-      setTimer({ state, currentTime });
-    });
+    subscribe(
+      EventType.EventAmaBoy,
+      ({ state, currentTime }: TimeCountdown) => {
+        setTimer({ state, currentTime });
+      }
+    );
 
-    subscribe("game_state", ({ state }) => {
-      if (state === "game_page") {
-        navigate("game");
+    subscribe(EventType.GameEventGameState, ({ state }: Page) => {
+      switch (state) {
+        case PageState.GamePage:
+          navigate("game");
       }
     });
   }, []);
@@ -61,7 +79,6 @@ export default function Lobby() {
     if (content === "") {
       return;
     }
-    console.log(content);
     ws.send(
       JSON.stringify({
         type: "send_message",

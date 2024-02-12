@@ -39,11 +39,11 @@ var (
 // --------------------------------
 
 var (
-	motionSystem    = NewMotionSystem()
-	inputSystem     = NewInputSystem()
-	powerUpSystem   = NewPowerUpSystem()
-	healthSystem    = NewHealthSystem()
-	explosionSystem = NewExplosionSystem()
+	CallMotionSystem    = NewMotionSystem()
+	CallInputSystem     = NewInputSystem()
+	CallPowerUpSystem   = NewPowerUpSystem()
+	CallHealthSystem    = NewHealthSystem()
+	CallExplosionSystem = NewExplosionSystem()
 )
 
 // var damageSystem = NewDamageSystem()
@@ -56,7 +56,7 @@ func SetBroadcaster(b helpers.Broadcaster) {
 	broadcaster = b
 }
 
-func (mv *MotionSystem) update(dt float64) {
+func (mv *MotionSystem) Update(dt float64) {
 	for e, mc := range mv.manager.motions {
 		pc, exists := positionManager.positions[e]
 		if !exists {
@@ -75,11 +75,10 @@ func (mv *MotionSystem) update(dt float64) {
 			mc.Velocity.X -= mc.Acceleration.X
 			mc.Velocity.Y -= mc.Acceleration.Y
 		}
-		broadcastMotion(pc.X, pc.Y, e)
 	}
 }
 
-func (is *InputSystem) update(dt float64) {
+func (is *InputSystem) Update(dt float64) {
 	for e, ic := range is.manager.inputs {
 		mc := motionManager.motions[e]
 		if ic.Input[Up] {
@@ -100,22 +99,18 @@ func (is *InputSystem) update(dt float64) {
 	}
 }
 
-func (hs *HealthSystem) update(dt float64) {
+func (hs *HealthSystem) Update(dt float64) {
 	for e, hc := range hs.manager.healths {
 		if hc.CurrentHealth <= 0 {
-			socketId := userEntityManager.GetUserIdByEntity(e)
-			broadcastPlayerHealth(socketId, hc.CurrentHealth)
 			DeleteAllEntityComponents(e)
 		}
 		if hc.CurrentHealth > hc.MaxHealth {
-			socketId := userEntityManager.GetUserIdByEntity(e)
 			hc.CurrentHealth = hc.MaxHealth
-			broadcastPlayerHealth(socketId, hc.CurrentHealth)
 		}
 	}
 }
 
-func (ex *ExplosionSystem) update(dt float64) {
+func (ex *ExplosionSystem) Update(dt float64) {
 	bombManager.mutex.RLock()
 	for e := range bombManager.bombs {
 		bombManager.mutex.RUnlock()
@@ -143,7 +138,6 @@ func (ex *ExplosionSystem) update(dt float64) {
 			continue
 		}
 		if time.Now().After(explosionTimer.Time) {
-			broadcastDeleteExplosions(e2)
 			DeleteAllEntityComponents(e2)
 		}
 		explosionManager.mutex.RLock()
@@ -157,7 +151,6 @@ func ExplodeBox(pos *PositionComponent) {
 	for _, e := range entityManager.entities {
 		pc := positionManager.GetPosition(e)
 		if pc != nil && boxManager.GetBox(e) != nil && ((pc.X == pos.X) && (pc.Y == pos.Y)) {
-			broadcastObstacle(pos.X, pos.Y, "box", "delete")
 			DeleteAllEntityComponents(e)
 		}
 	}
@@ -192,19 +185,15 @@ func DetectCollision(e1 *Entity, ignoreList ...*Entity) bool {
 			case PowerUpSpeed:
 				mc.Speed += Speed
 				DeleteAllEntityComponents(e2)
-				broadcastPowerup(pc2.X, pc2.Y, 1, "delete")
 			case PowerUpHealth:
 				hc.CurrentHealth += Regeneration
 				DeleteAllEntityComponents(e2)
-				broadcastPowerup(pc2.X, pc2.Y, 3, "delete")
 			case PowerUpBomb:
 				puc1.ExtraBombs += Bomb
 				DeleteAllEntityComponents(e2)
-				broadcastPowerup(pc2.X, pc2.Y, 2, "delete")
 			case PowerUpExplosion:
 				puc1.ExtraExplosionRange += ExplosionRange
 				DeleteAllEntityComponents(e2)
-				broadcastPowerup(pc2.X, pc2.Y, 4, "delete")
 			}
 			return false
 		}

@@ -13,11 +13,11 @@ const (
 )
 
 const (
-	Up               = "up"
-	Down             = "down"
-	Left             = "left"
-	Right            = "right"
-	Space            = "space"
+	Up               = "KeyW"
+	Down             = "KeyS"
+	Left             = "KeyA"
+	Right            = "KeyD"
+	Space            = "Space"
 	PowerUpSpeed     = 1
 	PowerUpBomb      = 2
 	PowerUpHealth    = 3
@@ -40,16 +40,11 @@ const (
 	DownSprite  = "downSprite.png"
 )
 
-var (
-	player1SpawnX = 10.0
-	player1Spawny = 5.0
-)
-
-func CreatePlayer(socketId int) *Entity {
-	player := entityManager.CreateEntity()
+func CreatePlayer(socketId int, x, y float64) *Entity {
+	player := entityManager.CreateEntity("player")
 
 	playerUser := &UserEntityComponent{entity: player}
-	playerPosition := &PositionComponent{X: player1SpawnX, Y: player1Spawny, Size: componentSize}
+	playerPosition := &PositionComponent{X: x, Y: y, Size: componentSize}
 	playerMotion := &MotionComponent{Velocity: Vec2{X: 0, Y: 0}, Acceleration: Vec2{X: 0, Y: 0}}
 	playerInput := &InputComponent{Input: map[string]bool{}}
 	playerHealth := &HealthComponent{CurrentHealth: playerMaxHealth, MaxHealth: playerMaxHealth}
@@ -61,7 +56,7 @@ func CreatePlayer(socketId int) *Entity {
 	inputManager.AddComponent(player, playerInput)
 	healthManager.AddComponent(player, playerHealth)
 	powerUpManager.AddComponent(player, playerPowerUps)
-	broadcastPlayerCreation(playerPosition.X, playerPosition.Y, socketId)
+	// broadcastPlayerCreation(playerPosition.X, playerPosition.Y, socketId)
 
 	return player
 }
@@ -86,7 +81,7 @@ func CreateBomb(player *Entity) *Entity {
 		return nil
 	}
 
-	bomb := entityManager.CreateEntity()
+	bomb := entityManager.CreateEntity("bomb")
 
 	bombComponent := &BombComponent{
 		BlastRadius: defaultExplosionRange + puc.ExtraExplosionRange,
@@ -101,8 +96,6 @@ func CreateBomb(player *Entity) *Entity {
 	timerManager.AddComponent(bomb, bombTimer)
 	positionManager.AddComponent(bomb, bombPosition)
 	bombManager.AddComponent(bomb, bombComponent)
-
-	broadcastBomb(pc.X, pc.Y, "create")
 
 	return bomb
 }
@@ -146,7 +139,7 @@ func createExplosionAtPosition(pos *PositionComponent) {
 }
 
 func CreateExplosion(positionComponent *PositionComponent) {
-	explosion := entityManager.CreateEntity()
+	explosion := entityManager.CreateEntity("explosion")
 
 	explosionComponent := &ExplosionComponent{}
 	explosionPosition := positionComponent
@@ -157,12 +150,10 @@ func CreateExplosion(positionComponent *PositionComponent) {
 	positionManager.AddComponent(explosion, explosionPosition)
 	damageManager.AddComponent(explosion, explosionDamage)
 	explosionManager.AddComponent(explosion, explosionComponent)
-
-	broadcastExplosion(positionComponent.X, positionComponent.Y, "create")
 }
 
 func CreatePowerUp(powerUpName int) *Entity {
-	powerUp := entityManager.CreateEntity()
+	powerUp := entityManager.CreateEntity("powerup")
 
 	powerUpPosition := &PositionComponent{}
 	powerUpProperty := &PowerUpComponent{Name: powerUpName}
@@ -170,13 +161,11 @@ func CreatePowerUp(powerUpName int) *Entity {
 	positionManager.AddComponent(powerUp, powerUpPosition)
 	powerUpManager.AddComponent(powerUp, powerUpProperty)
 
-	broadcastPowerup(powerUpPosition.X, powerUpPosition.Y, powerUpName, "create")
-
 	return powerUp
 }
 
 func CreateWall(X, Y float64) *Entity {
-	wall := entityManager.CreateEntity()
+	wall := entityManager.CreateEntity("wall")
 
 	playerPosition := &PositionComponent{X: X, Y: Y, Size: 1}
 	wallIdentifier := &WallComponent{}
@@ -184,13 +173,11 @@ func CreateWall(X, Y float64) *Entity {
 	positionManager.AddComponent(wall, playerPosition)
 	wallManager.AddComponent(wall, wallIdentifier)
 
-	broadcastObstacle(X, Y, "wall", "create")
-
 	return wall
 }
 
 func CreateBox(X, Y float64) *Entity {
-	box := entityManager.CreateEntity()
+	box := entityManager.CreateEntity("box")
 
 	playerPosition := &PositionComponent{X: X, Y: Y, Size: 1}
 	playerHealth := &HealthComponent{CurrentHealth: boxHealth, MaxHealth: boxHealth}
@@ -199,8 +186,6 @@ func CreateBox(X, Y float64) *Entity {
 	positionManager.AddComponent(box, playerPosition)
 	healthManager.AddComponent(box, playerHealth)
 	boxManager.AddComponent(box, boxIdentifier)
-
-	broadcastObstacle(X, Y, "box", "create")
 
 	return box
 }

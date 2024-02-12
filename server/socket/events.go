@@ -3,7 +3,6 @@ package socket
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
@@ -72,8 +71,6 @@ func UsernameHandler(event models.Event, c *Client) error {
 		return fmt.Errorf("bad payload in request: %v", err)
 	}
 	adduserEvent.UserName = strings.TrimSpace(adduserEvent.UserName)
-
-	log.Println("connect", c.manager.Lobby)
 
 	if adduserEvent.UserName == "" || c.manager.Lobby.isUsernameExists(adduserEvent.UserName) {
 		c.egress <- SerializeData(GameEventGameState, models.Response{Status: "Индус", Message: "ПОШЛИ НАХУЙ"})

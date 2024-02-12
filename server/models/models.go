@@ -101,3 +101,17 @@ type LobbyState struct {
 	CurrentTime int    `json:"currentTime"`
 	State       string `json:"state"`
 }
+
+type Position struct {
+	X, Y float64
+	Size float64
+}
+
+type GameStateTransmission struct {
+	players    []Position
+	bombs      []Position
+	explosions []Position
+	walls      []Position
+	boxes      []Position
+	powerups   []Position
+}

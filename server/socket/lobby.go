@@ -55,6 +55,16 @@ func (l *Lobby) removeAllPlayers() {
 	}
 }
 
+func (l *Lobby) getPlayerAllIds() []int {
+	result := make([]int, 0)
+
+	for _, v := range l.userList {
+		result = append(result, v.id)
+	}
+
+	return result
+}
+
 func (l *Lobby) BroadcastAllClients(data models.Event) {
 	for _, client := range l.userList {
 		client.egress <- data

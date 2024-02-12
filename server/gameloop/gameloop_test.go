@@ -8,7 +8,7 @@ import (
 
 func TestGameLoopAt60FPS(t *testing.T) {
 	const fps = 60
-	const expectedInterval = time.Duration(fps)
+	const expectedInterval = fps
 	const tolerance = time.Millisecond * 2 // Adjust this based on acceptable tolerance (ms)
 
 	var lastUpdate time.Time
@@ -24,7 +24,7 @@ func TestGameLoopAt60FPS(t *testing.T) {
 	}
 
 	loop := New(expectedInterval, onUpdate)
-	loop.Start()
+	go loop.Start()
 	defer loop.Stop()
 
 	// Let the game loop run for a short duration
@@ -43,12 +43,12 @@ func TestGameLoopAt60FPS(t *testing.T) {
 func TestGameLoopOtherFunctionalities(t *testing.T) {
 	var loopUpdated bool
 	var fps = 30 // 30 fps aka 33.33ms
-	loop := New(time.Duration(fps), func(dt float64) {
+	loop := New(fps, func(dt float64) {
 		loopUpdated = true
 	})
 
 	// Start function
-	loop.Start()
+	go loop.Start()
 	fmt.Printf("Gameloop started at a tickrate of %v tps, testing if loop is updated\n", fps)
 	// Wait for 100ms to check if loop updates it within its tickrate
 	time.Sleep(time.Millisecond * 100)
@@ -72,7 +72,7 @@ func TestGameLoopOtherFunctionalities(t *testing.T) {
 
 	// Restart function
 	fmt.Println("Testing restarting function:")
-	loop.Restart()
+	go loop.Restart()
 	fmt.Println("Gameloop restarted, checking if loop is updated")
 	time.Sleep(time.Millisecond * 100)
 

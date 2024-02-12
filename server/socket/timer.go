@@ -1,6 +1,9 @@
 package socket
 
 import (
+	"bomberman-dom/config"
+	"bomberman-dom/engine"
+	"bomberman-dom/gameloop"
 	"bomberman-dom/models"
 	"log"
 	"time"
@@ -142,9 +145,31 @@ func (s StartingGameState) startTimer(countdown int) {
 				s.timer.instance.Stop()
 			}
 			// s.timer.lobby.userList = make(OnlineList)
-			// StartGame()
+			mapLayout := config.ConfigFile.MapLayout
+			engine.CreateGame(mapLayout, s.timer.lobby.getPlayerAllIds())
+
+			gl := gameloop.New(60, func(f float64) {})
+			gl.SetOnUpdate(func(f float64) {
+				gs := engine.CreateMap()
+				s.timer.lobby.BroadcastAllClients(SerializeData("game_event", gs))
+
+				// log.Println("time elapsed:", f)
+
+				engine.CallExplosionSystem.Update(f)
+				engine.CallHealthSystem.Update(f)
+				engine.CallInputSystem.Update(f)
+				engine.CallMotionSystem.Update(f)
+
+				if len(gs.Players) < 2 {
+					// end screen
+					log.Println("game ended")
+					gl.Stop()
+				}
+			})
+			gl.Start()
+
 			s.timer.lobby.removeAllPlayers()
-			log.Println(s.timer.lobby)
+			engine.RemoveMap()
 			return
 		}
 

@@ -544,10 +544,11 @@ func (m *UserEntityManager) SetUserEntity(userId int, user *UserEntityComponent)
 // Other
 // --------------------------------
 
-func (em *EntityManager) CreateEntity() *Entity {
+func (em *EntityManager) CreateEntity(name string) *Entity {
 	em.mutex.Lock()
 	defer em.mutex.Unlock()
-	entity := &Entity{Id: em.Id}
+	entity := &Entity{Id: em.Id, Name: name}
+
 	em.entities = append(em.entities, entity)
 	em.Id++
 	return entity

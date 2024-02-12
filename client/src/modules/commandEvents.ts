@@ -1,45 +1,36 @@
 import Gachi, { useEffect, useState } from "../Gachi.js/src/core/framework";
+import { ws } from "../additional-functions/websocket";
+import { EventType } from "../types/Types";
 
-const GameComponent = () => {
-  const [keysPressed, setKeysPressed] = useState({
-    KeyW: false,
-    KeyA: false,
-    KeyS: false,
-    KeyD: false,
-    Space: false,
-  });
+const keysPressed = {
+  KeyW: false,
+  KeyA: false,
+  KeyS: false,
+  KeyD: false,
+  Space: false,
+};
 
-  const handleKeyDown = (event) => {
+const GameInput = () => {
+  const handleKeyDown = (event: KeyboardEvent) => {
     const key = event.code;
+    event.repeat;
 
-    if (keysPressed.hasOwnProperty(key)) {
-      if (event.code) {
-        event.preventDefault();
-      }
+    if (keysPressed.hasOwnProperty(key) && !event.repeat) {
+      event.preventDefault();
 
-      setKeysPressed((prevKeys) => {
-        const updatedKeys = { ...prevKeys, [key]: true };
-        sendKeysToBackend(updatedKeys);
-        return updatedKeys;
-      });
+      keysPressed[key] = true;
+      sendKeysToBackend(keysPressed);
     }
   };
 
-  const handleKeyUp = (event) => {
+  const handleKeyUp = (event: KeyboardEvent) => {
     const key = event.code;
     if (keysPressed.hasOwnProperty(key)) {
-      setKeysPressed((prevKeys) => {
-        const updatedKeys = { ...prevKeys, [key]: false };
-        sendKeysToBackend(updatedKeys);
-        return updatedKeys;
-      });
-    }
-  };
+      event.preventDefault();
 
-  const sendKeysToBackend = (updatedKeys) => {
-    const jsonToSend = JSON.stringify(updatedKeys);
-    console.log(jsonToSend);
-    // Send jsonToSend to the backend
+      keysPressed[key] = false;
+      sendKeysToBackend(keysPressed);
+    }
   };
 
   useEffect(() => {
@@ -50,7 +41,17 @@ const GameComponent = () => {
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
     };
-  }, [keysPressed]);
+  }, []);
 };
 
-export default GameComponent;
+export default GameInput;
+
+function sendKeysToBackend(updatedKeys) {
+  const jsonToSend = JSON.stringify({
+    type: EventType.GameEventInput,
+    payload: { keys: updatedKeys },
+  });
+
+  // console.log(jsonToSend);
+  ws.send(jsonToSend);
+}

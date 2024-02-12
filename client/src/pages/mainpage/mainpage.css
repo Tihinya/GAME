@@ -5,7 +5,7 @@
   justify-content: center;
   align-items: flex-start;
 
-  background-image: url("../../public/img/background");
+  background-image: url("/sprites/img/background.png");
   background-size: cover;
 }
 

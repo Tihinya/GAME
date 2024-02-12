@@ -1,18 +1,17 @@
 package gameloop
 
 import (
-	"runtime"
 	"time"
 )
 
 type GameLoop struct {
 	onUpdate func(float64)
-	tickRate time.Duration
+	tickRate int
 	quit     chan bool
 }
 
 // Create new game loop
-func New(tickRate time.Duration, onUpdate func(float64)) *GameLoop {
+func New(tickRate int, onUpdate func(float64)) *GameLoop {
 	return &GameLoop{
 		onUpdate: onUpdate,
 		tickRate: tickRate,
@@ -21,22 +20,19 @@ func New(tickRate time.Duration, onUpdate func(float64)) *GameLoop {
 }
 
 func (gl *GameLoop) startLoop() {
-	runtime.LockOSThread()
-	defer runtime.UnlockOSThread()
+	// runtime.LockOSThread()
+	// defer runtime.UnlockOSThread()
 
-	tickInterval := time.Second / gl.tickRate
-	timeStart := time.Now().UnixNano()
+	tickInterval := time.Second / time.Duration(gl.tickRate)
+	timeStart := time.Now()
 
 	ticker := time.NewTicker(tickInterval)
 
 	for {
 		select {
-		case <-ticker.C:
-			now := time.Now().UnixNano()
-			// DT in seconds
-			delta := float64(now-timeStart) / 1000000000
-			timeStart = now
-			gl.onUpdate(delta)
+		case t := <-ticker.C:
+			gl.onUpdate(time.Since(timeStart).Seconds())
+			timeStart = t
 
 		case <-gl.quit:
 			ticker.Stop()
@@ -44,12 +40,12 @@ func (gl *GameLoop) startLoop() {
 	}
 }
 
-func (gl *GameLoop) GetTickRate() time.Duration {
+func (gl *GameLoop) GetTickRate() int {
 	return gl.tickRate
 }
 
 // Set tickRate and restart game loop
-func (gl *GameLoop) SetTickRate(tickRate time.Duration) {
+func (gl *GameLoop) SetTickRate(tickRate int) {
 	gl.tickRate = tickRate
 	gl.Restart()
 }
@@ -61,7 +57,7 @@ func (gl *GameLoop) SetOnUpdate(onUpdate func(float64)) {
 
 // Start game loop
 func (gl *GameLoop) Start() {
-	go gl.startLoop()
+	gl.startLoop()
 }
 
 // Stop game loop

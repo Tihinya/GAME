@@ -3,9 +3,10 @@ import Gachi, {
   useEffect,
   useState,
 } from "../../Gachi.js/src/core/framework";
-import logo from "../../public/img/logo.png";
 import { subscribe, ws } from "../../additional-functions/websocket";
 
+import { EventType, Page, PageState } from "../../types/Types";
+import logo from "/sprites/img/logo.png";
 import "./mainpage.css";
 
 export default function MenuPage() {
@@ -14,18 +15,15 @@ export default function MenuPage() {
   const navigate = useContext("switchPage");
 
   useEffect(() => {
-    subscribe("game_state", ({ state }) => {
-      console.log(state);
-
-      if (state === "lobby") {
-        navigate("lobby");
+    subscribe(EventType.GameEventGameState, ({ state }: Page) => {
+      switch (state) {
+        case PageState.Lobby:
+          navigate("lobby");
       }
     });
   }, []);
 
   const acceptName = () => {
-    console.log(playerName);
-
     ws.send(
       JSON.stringify({
         type: "register_user",

@@ -9,7 +9,7 @@ func TestValidComponentManager(t *testing.T) {
 	timerManager := NewTimerManager()
 	spriteManager := NewSpriteManager()
 
-	entity := entityManager.CreateEntity()
+	entity := entityManager.CreateEntity("player")
 	defer func() {
 		DeleteAllEntityComponents(entity)
 	}()

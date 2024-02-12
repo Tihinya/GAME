@@ -9,7 +9,7 @@ import (
 )
 
 func TestBombPlacingAndDetonation(t *testing.T) {
-	player := CreatePlayer(1)
+	player := CreatePlayer(1, 10.0, 5.0)
 	playerPosition := positionManager.positions[player]
 
 	fmt.Println("STAGE 1: Testing bomb placing")
@@ -35,8 +35,8 @@ func TestBombPlacingAndDetonation(t *testing.T) {
 
 	fmt.Println("STAGE 2: Testing bomb explosion")
 	fps := 60
-	loop := gameloop.New(time.Duration(fps), func(dt float64) {
-		explosionSystem.update(dt)
+	loop := gameloop.New(fps, func(dt float64) {
+		CallExplosionSystem.Update(dt)
 	})
 	fmt.Printf("STAGE 2: Gameloop started at a tickrate of %v, running for 600 milliseconds\n", fps)
 
@@ -99,13 +99,13 @@ func TestBombPlacingAndDetonation(t *testing.T) {
 
 func TestBoxExplosion(t *testing.T) {
 	fps := 60
-	loop := gameloop.New(time.Duration(fps), func(dt float64) {
-		explosionSystem.update(dt)
+	loop := gameloop.New(fps, func(dt float64) {
+		CallExplosionSystem.Update(dt)
 	})
 	loop.Start()
 	fmt.Printf("Gameloop started at a tickrate of %v, running for 600 milliseconds\n", fps)
 
-	player := CreatePlayer(1) // X: 10 Y: 5
+	player := CreatePlayer(1, 10.0, 5.0) // X: 10 Y: 5
 	bomb := CreateBomb(player)
 	box := CreateBox(10, 4) // Box one unit above player
 
@@ -137,14 +137,14 @@ func TestBoxExplosion(t *testing.T) {
 
 func TestWallExplosion(t *testing.T) {
 	fps := 60
-	loop := gameloop.New(time.Duration(fps), func(dt float64) {
-		explosionSystem.update(dt)
+	loop := gameloop.New(fps, func(dt float64) {
+		CallExplosionSystem.Update(dt)
 	})
 	loop.Start()
 	fmt.Printf("Gameloop started at a tickrate of %v, running for 600 milliseconds\n", fps)
 
-	CreateWall(10, 6)         // Box one unit above player
-	player := CreatePlayer(1) // X: 10 Y: 5
+	CreateWall(10, 6)                    // Box one unit above player
+	player := CreatePlayer(1, 10.0, 5.0) // X: 10 Y: 5
 	bomb := CreateBomb(player)
 
 	pc := positionManager.GetPosition(bomb)

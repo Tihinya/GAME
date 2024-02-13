@@ -99,8 +99,7 @@
 }
 
 .bomb {
-  background-image: url("/sprites/assets/Ground.png"),
-    url("/sprites/assets/Bomb.png");
+  background-image: url("/sprites/assets/Bomb.png");
   transform: scale(0.7);
 }
 

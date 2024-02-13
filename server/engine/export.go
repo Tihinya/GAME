@@ -9,6 +9,7 @@ type GameState struct {
 }
 
 type Tile struct {
+	Id   int     `json:"id"`
 	Name string  `json:"name"`
 	X    float64 `json:"x"`
 	Y    float64 `json:"y"`
@@ -63,7 +64,7 @@ func CreateMap() *GameState {
 		}
 
 		if entity.Name == "player" {
-			gs.Players = append(gs.Players, createTile(position.X, position.Y, ""))
+			gs.Players = append(gs.Players, createTile(position.X, position.Y, "", entity.Id))
 		} else if entity.Name == "powerup" {
 			gs.Powerups = append(gs.Powerups, createTile(position.X, position.Y, ""))
 		}
@@ -80,15 +81,15 @@ func RemoveMap() {
 	entityManager = NewEntityManager()
 }
 
-func createTile(x float64, y float64, name string, size ...float64) *Tile {
+func createTile(x float64, y float64, name string, id ...int) *Tile {
 	tile := &Tile{
 		X:    x,
 		Y:    y,
 		Name: name,
 	}
 
-	if len(size) > 0 {
-		tile.Size = size[0]
+	if len(id) > 0 {
+		tile.Id = id[0]
 	}
 
 	return tile

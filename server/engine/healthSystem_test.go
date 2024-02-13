@@ -51,8 +51,7 @@ func TestMinHealthSystem(t *testing.T) {
 		t.Fatalf("Expected player health to be 0, got %v", hc.CurrentHealth)
 	}
 
-	if positionManager.GetPosition(player) != nil {
-		t.Fatalf("Expected player position to sbe nil, got %v", positionManager.GetPosition(player))
+	if playerPosition := positionManager.GetPosition(player); playerPosition != nil {
+		t.Fatalf("Expected player position to sbe nil, got %v", playerPosition)
 	}
-
 }

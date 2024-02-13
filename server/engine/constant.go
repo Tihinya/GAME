@@ -1,15 +1,8 @@
 package engine
 
 import (
+	"math"
 	"time"
-)
-
-const (
-	Speed          = 1.0
-	Acceleration   = 1.0
-	Regeneration   = 1
-	Bomb           = 1
-	ExplosionRange = 1
 )
 
 const (
@@ -25,7 +18,7 @@ const (
 )
 
 const (
-	componentSize         = 1.0
+	componentSize         = 40.0
 	playerMaxHealth       = 3
 	boxHealth             = 1
 	defaultExplosionRange = 2
@@ -33,17 +26,11 @@ const (
 	defaultBombAmount     = 1
 )
 
-const (
-	LeftSprite  = "leftSprite.png"
-	RightSprite = "rightSprite.png"
-	UpSprite    = "upSprite.png"
-	DownSprite  = "downSprite.png"
-)
-
 func CreatePlayer(socketId int, x, y float64) *Entity {
 	player := entityManager.CreateEntity("player")
 
 	playerUser := &UserEntityComponent{entity: player}
+	playerCollision := &CollisionComponent{Enabled: true}
 	playerPosition := &PositionComponent{X: x, Y: y, Size: componentSize}
 	playerMotion := &MotionComponent{Velocity: Vec2{X: 0, Y: 0}, Acceleration: Vec2{X: 0, Y: 0}}
 	playerInput := &InputComponent{Input: map[string]bool{}}
@@ -56,7 +43,7 @@ func CreatePlayer(socketId int, x, y float64) *Entity {
 	inputManager.AddComponent(player, playerInput)
 	healthManager.AddComponent(player, playerHealth)
 	powerUpManager.AddComponent(player, playerPowerUps)
-	// broadcastPlayerCreation(playerPosition.X, playerPosition.Y, socketId)
+	collisionManager.AddComponent(player, playerCollision)
 
 	return player
 }
@@ -64,31 +51,27 @@ func CreatePlayer(socketId int, x, y float64) *Entity {
 func CreateBomb(player *Entity) *Entity {
 	var playerActiveBombs int
 
-	pc := positionManager.GetPosition(player)
-	puc := powerUpManager.powerUps[player]
+	playerPosition := positionManager.GetPosition(player)
+	playerPowerUps := powerUpManager.powerUps[player]
 
-	bombManager.mutex.RLock()
 	for _, bc := range bombManager.bombs {
-		bombManager.mutex.RUnlock()
 		if bc.Owner == player {
 			playerActiveBombs++
 		}
-		bombManager.mutex.RLock()
 	}
-	bombManager.mutex.RUnlock()
 
-	if !(playerActiveBombs < (1 + puc.ExtraBombs)) {
+	if playerActiveBombs >= playerPowerUps.ExtraBombs+1 {
 		return nil
 	}
 
 	bomb := entityManager.CreateEntity("bomb")
 
 	bombComponent := &BombComponent{
-		BlastRadius: defaultExplosionRange + puc.ExtraExplosionRange,
+		BlastRadius: defaultExplosionRange + playerPowerUps.ExtraExplosionRange,
 		IsActive:    true,
 		Owner:       player,
 	}
-	bombPosition := &PositionComponent{X: pc.X, Y: pc.Y, Size: pc.Size}
+	bombPosition := &PositionComponent{X: roundBase(playerPosition.X, componentSize), Y: roundBase(playerPosition.Y, componentSize), Size: componentSize}
 	bombCollision := &CollisionComponent{Enabled: false}
 	bombTimer := &TimerComponent{time.Now().Add(fuseTime)}
 
@@ -100,6 +83,18 @@ func CreateBomb(player *Entity) *Entity {
 	return bomb
 }
 
+func roundBase(num float64, base float64) float64 {
+	modulo := math.Mod(num, base)
+
+	num -= modulo
+
+	if modulo < base/2 {
+		return num
+	} else {
+		return num + base
+	}
+}
+
 func SpreadExplosion(e *Entity) {
 	pc := positionManager.GetPosition(e)
 	bc := bombManager.GetBomb(e)
@@ -108,8 +103,7 @@ func SpreadExplosion(e *Entity) {
 		return
 	}
 
-	// Create an explosion at the bomb's position
-	createExplosionAtPosition(&PositionComponent{X: pc.X, Y: pc.Y, Size: 1})
+	CreateExplosion(&PositionComponent{X: pc.X, Y: pc.Y, Size: componentSize})
 
 	directions := []struct {
 		dx, dy float64
@@ -119,23 +113,20 @@ func SpreadExplosion(e *Entity) {
 
 	for _, dir := range directions {
 		for i := 1; i < bc.BlastRadius; i++ {
-			newPos := &PositionComponent{X: pc.X + float64(i)*dir.dx, Y: pc.Y + float64(i)*dir.dy}
+			currentRadius := float64(i) * componentSize
+			newPos := &PositionComponent{X: pc.X + currentRadius*dir.dx, Y: pc.Y + currentRadius*dir.dy}
 
 			if IsWallAtPosition(newPos) {
-				break // Wall is blocking this direction
+				break
 			}
-			if IsBoxAtPosition(newPos) {
-				createExplosionAtPosition(newPos)
-				break // Explode at wall and block all next explosions
+
+			CreateExplosion(newPos)
+			if box := GetBoxAtPosition(newPos); box != nil {
+				DeleteAllEntityComponents(box)
+				break
 			}
-			createExplosionAtPosition(newPos)
 		}
 	}
-}
-
-func createExplosionAtPosition(pos *PositionComponent) {
-	ExplodeBox(pos)
-	CreateExplosion(pos)
 }
 
 func CreateExplosion(positionComponent *PositionComponent) {
@@ -166,11 +157,12 @@ func CreatePowerUp(powerUpName int) *Entity {
 
 func CreateWall(X, Y float64) *Entity {
 	wall := entityManager.CreateEntity("wall")
-
-	playerPosition := &PositionComponent{X: X, Y: Y, Size: 1}
+	wallCollision := &CollisionComponent{Enabled: true}
+	wallPosition := &PositionComponent{X: X, Y: Y, Size: componentSize}
 	wallIdentifier := &WallComponent{}
 
-	positionManager.AddComponent(wall, playerPosition)
+	collisionManager.AddComponent(wall, wallCollision)
+	positionManager.AddComponent(wall, wallPosition)
 	wallManager.AddComponent(wall, wallIdentifier)
 
 	return wall
@@ -179,10 +171,12 @@ func CreateWall(X, Y float64) *Entity {
 func CreateBox(X, Y float64) *Entity {
 	box := entityManager.CreateEntity("box")
 
-	playerPosition := &PositionComponent{X: X, Y: Y, Size: 1}
+	boxCollision := &CollisionComponent{Enabled: true}
+	playerPosition := &PositionComponent{X: X, Y: Y, Size: componentSize}
 	playerHealth := &HealthComponent{CurrentHealth: boxHealth, MaxHealth: boxHealth}
 	boxIdentifier := &BoxComponent{}
 
+	collisionManager.AddComponent(box, boxCollision)
 	positionManager.AddComponent(box, playerPosition)
 	healthManager.AddComponent(box, playerHealth)
 	boxManager.AddComponent(box, boxIdentifier)
@@ -203,15 +197,15 @@ func IsWallAtPosition(pos *PositionComponent) bool {
 	return false
 }
 
-func IsBoxAtPosition(pos *PositionComponent) bool {
+func GetBoxAtPosition(pos *PositionComponent) *Entity {
 	// Iterate over all entities to check for a wall at the given position
 	for _, e := range entityManager.entities {
 		if boxComp := boxManager.GetBox(e); boxComp != nil {
 			boxPos := positionManager.GetPosition(e)
-			if boxPos != nil && boxPos.X == pos.X && boxPos.Y == pos.Y {
-				return true // Found a wall at the position
+			if boxPos.X == pos.X && boxPos.Y == pos.Y {
+				return e // Found a wall at the position
 			}
 		}
 	}
-	return false
+	return nil
 }

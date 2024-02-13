@@ -43,9 +43,6 @@ func (l *Lobby) addPlayer(c *Client) {
 }
 
 func (l *Lobby) removePlayer(username string) {
-	l.manager.RWMutex.Lock()
-	defer l.manager.RWMutex.Unlock()
-
 	delete(l.userList, username)
 }
 

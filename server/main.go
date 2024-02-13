@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"bomberman-dom/config"
-	"bomberman-dom/engine"
 	"bomberman-dom/socket"
 )
 
@@ -13,7 +12,7 @@ func main() {
 	config.ParseConfig("./config.json")
 
 	socket.Instance = socket.NewManager()
-	engine.SetBroadcaster(socket.Instance.Lobby)
+	// engine.SetBroadcaster(socket.Instance.Lobby)
 
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 

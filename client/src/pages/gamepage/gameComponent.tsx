@@ -23,14 +23,18 @@ export function GameComponent({ gameState }: GameComponentProps) {
         });
       })}
 
-      {gameState.players.map((position) => {
-        return (
-          <div
-            className={"cell player"}
-            style={`top: ${position.y * 1.25}px; left: ${position.x * 1.25}px`}
-          ></div>
-        );
-      })}
+      {gameState.players
+        .sort(({ id: idA }, { id: idB }) => idA - idB)
+        .map((position) => {
+          return (
+            <div
+              className={"cell player"}
+              style={`top: ${position.y * 1.25}px; left: ${
+                position.x * 1.25
+              }px`}
+            ></div>
+          );
+        })}
 
       {gameState.powerups.map((position) => {
         return (

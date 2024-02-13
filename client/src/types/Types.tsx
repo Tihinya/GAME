@@ -51,7 +51,7 @@ export type Page = {
 type Position = {
   x: number;
   y: number;
-  size: number;
+  id: number;
 };
 
 type Block = {

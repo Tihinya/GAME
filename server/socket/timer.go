@@ -83,7 +83,7 @@ func newClosingLobbyState(timer *Timer) ClosingLobbyState {
 
 func (s ClosingLobbyState) startTimer(countdown int) {
 	s.timer.instance = time.NewTicker(time.Second * 1)
-	s.timer.currentTime = 21
+	s.timer.currentTime = 2
 
 	for range s.timer.instance.C {
 		playersAmount := s.timer.lobby.getAmountOfPlayers()
@@ -128,7 +128,7 @@ func newStartingGameState(timer *Timer) StartingGameState {
 
 func (s StartingGameState) startTimer(countdown int) {
 	s.timer.instance = time.NewTicker(time.Second * 1)
-	s.timer.currentTime = 11
+	s.timer.currentTime = 1
 
 	for range s.timer.instance.C {
 		playersAmount := s.timer.lobby.getAmountOfPlayers()

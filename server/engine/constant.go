@@ -35,40 +35,39 @@ func CreatePlayer(socketId int, x, y float64) *Entity {
 	playerMotion := &MotionComponent{Velocity: Vec2{X: 0, Y: 0}, Acceleration: Vec2{X: 0, Y: 0}}
 	playerInput := &InputComponent{Input: map[string]bool{}}
 	playerHealth := &HealthComponent{CurrentHealth: playerMaxHealth, MaxHealth: playerMaxHealth}
-	playerPowerUps := &PowerUpComponent{ExtraBombs: 0, ExtraExplosionRange: 0, ExtraSpeed: 0}
+	// playerPowerUps := &PowerUpComponent{ExtraBombs: 0, ExtraExplosionRange: 0, ExtraSpeed: 0}
 
 	userEntityManager.AddComponent(socketId, playerUser)
 	positionManager.AddComponent(player, playerPosition)
 	motionManager.AddComponent(player, playerMotion)
 	inputManager.AddComponent(player, playerInput)
 	healthManager.AddComponent(player, playerHealth)
-	powerUpManager.AddComponent(player, playerPowerUps)
+	// powerUpManager.AddComponent(player, playerPowerUps)
 	collisionManager.AddComponent(player, playerCollision)
 
 	return player
 }
 
 func CreateBomb(player *Entity) *Entity {
-	var playerActiveBombs int
+	// var playerActiveBombs int
 
 	playerPosition := positionManager.GetPosition(player)
-	playerPowerUps := powerUpManager.powerUps[player]
+	// playerPowerUps := powerUpManager.powerUps[player]
 
-	for _, bc := range bombManager.bombs {
-		if bc.Owner == player {
-			playerActiveBombs++
-		}
-	}
+	// for _, bc := range bombManager.bombs {
+	// 	if bc.Owner == player {
+	// 		playerActiveBombs++
+	// 	}
+	// }
 
-	if playerActiveBombs >= playerPowerUps.ExtraBombs+1 {
-		return nil
-	}
+	// if player.PlacedBombs > player.BombAmount {
+	// 	return nil
+	// }
 
 	bomb := entityManager.CreateEntity("bomb")
 
 	bombComponent := &BombComponent{
-		BlastRadius: defaultExplosionRange + playerPowerUps.ExtraExplosionRange,
-		IsActive:    true,
+		BlastRadius: defaultExplosionRange,
 		Owner:       player,
 	}
 	bombPosition := &PositionComponent{X: roundBase(playerPosition.X, componentSize), Y: roundBase(playerPosition.Y, componentSize), Size: componentSize}
@@ -143,7 +142,7 @@ func CreateExplosion(positionComponent *PositionComponent) {
 	explosionManager.AddComponent(explosion, explosionComponent)
 }
 
-func CreatePowerUp(powerUpName int) *Entity {
+func CreatePowerUp(powerUpName string) *Entity {
 	powerUp := entityManager.CreateEntity("powerup")
 
 	powerUpPosition := &PositionComponent{}

@@ -72,9 +72,27 @@ type ExplosionSystem struct {
 	manager *ExplosionManager
 }
 
+type DamageSystem struct {
+	manager *DamageManager
+}
+type PowerUpSystem struct {
+	manager *PowerUpManager
+}
+
 // --------------------------------
 // Createing systems
 // --------------------------------
+
+func NewDamageSystem() *DamageSystem {
+	return &DamageSystem{
+		manager: damageManager,
+	}
+}
+func NewPowerUpSystem() *PowerUpSystem {
+	return &PowerUpSystem{
+		manager: powerUpManager,
+	}
+}
 
 func NewMotionSystem() *MotionSystem {
 	return &MotionSystem{

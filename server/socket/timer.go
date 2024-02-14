@@ -159,6 +159,8 @@ func (s StartingGameState) startTimer(countdown int) {
 				engine.CallHealthSystem.Update(f)
 				engine.CallInputSystem.Update(f)
 				engine.CallMotionSystem.Update(f)
+				engine.CallDamageSystem.Update(f)
+				engine.CallPowerUpSystem.Update(f)
 
 				if len(gs.Players) < 2 {
 					// end screen

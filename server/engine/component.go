@@ -33,17 +33,22 @@ type TimerComponent struct {
 	Time time.Time
 }
 type PowerUpComponent struct {
-	ExtraBombs          int
-	ExtraExplosionRange int
-	ExtraSpeed          float64
-	Name                int
+	Name string
 }
 type DamageComponent struct {
 	DamageAmount int
 }
+
+type BM struct {
+	BlastRadius int
+	BombAmount  int
+	PlacedBombs int
+}
+
 type BombComponent struct {
 	BlastRadius int
-	IsActive    bool
+	BombAmount  int
+	PlacedBombs int
 	Owner       *Entity
 }
 type UserEntityComponent struct {

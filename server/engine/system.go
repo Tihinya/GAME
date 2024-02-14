@@ -42,6 +42,8 @@ var (
 	CallInputSystem     = NewInputSystem()
 	CallHealthSystem    = NewHealthSystem()
 	CallExplosionSystem = NewExplosionSystem()
+	CallDamageSystem    = NewDamageSystem()
+	CallPowerUpSystem   = NewPowerUpSystem()
 )
 
 // var damageSystem = NewDamageSystem()
@@ -53,6 +55,41 @@ var (
 // func SetBroadcaster(b helpers.Broadcaster) {
 // 	broadcaster = b
 // }
+
+func (dm *DamageSystem) Update(dt float64) {
+	for e, damge := range dm.manager.damages {
+		if collistion, entity := DetectCollision(e); collistion {
+			entityHealth := healthManager.healths[entity]
+			entityHealth.CurrentHealth -= damge.DamageAmount
+			if entityHealth.CurrentHealth < 1 {
+				DeleteAllEntityComponents(e)
+			}
+		}
+	}
+}
+
+const SpeedPowerUp = 10
+const HealthPowerUp = 1
+
+func (pw *PowerUpSystem) Update(dt float64) {
+	for powerup, powerUpComponent := range pw.manager.powerUps {
+		if collistion, player := DetectCollision(powerup); !collistion {
+			if powerUpComponent.Name == "speedPowerUp" {
+				mc := motionManager.motions[player]
+				mc.Speed += SpeedPowerUp
+				DeleteAllEntityComponents(powerup)
+			} else if powerUpComponent.Name == "bombPowerUp" {
+				DeleteAllEntityComponents(powerup)
+			} else if powerUpComponent.Name == "healthPowerUp" {
+				hl := healthManager.healths[player]
+				hl.MaxHealth += HealthPowerUp
+				DeleteAllEntityComponents(powerup)
+			} else if powerUpComponent.Name == "exposionPowerup" {
+				DeleteAllEntityComponents(powerup)
+			}
+		}
+	}
+}
 
 func (mv *MotionSystem) Update(dt float64) {
 	for e, mc := range mv.manager.motions {
@@ -66,7 +103,7 @@ func (mv *MotionSystem) Update(dt float64) {
 		mc.Velocity.X += mc.Acceleration.X
 		mc.Velocity.Y += mc.Acceleration.Y
 
-		if DetectCollision(e) {
+		if collistion, _ := DetectCollision(e); collistion {
 			pc.X -= mc.Velocity.X
 			pc.Y -= mc.Velocity.Y
 
@@ -94,7 +131,11 @@ func (is *InputSystem) Update(dt float64) {
 			mc.Velocity.X = 1
 		}
 		if ic.Input[Space] {
-			CreateBomb(e)
+			bomb := CreateBomb(e)
+			fmt.Println(bomb)
+			// if collistion, _ := DetectCollision(bomb, e); collistion {
+			// 	delete(positionManager.positions, bomb)
+			// }
 		}
 	}
 }
@@ -142,7 +183,7 @@ func HandleInput(input models.GameInput, playerId int) {
 	}
 }
 
-func DetectCollision(e1 *Entity, ignoreList ...*Entity) bool {
+func DetectCollision(e1 *Entity, ignoreList ...*Entity) (bool, *Entity) {
 	currentCollider := positionManager.positions[e1]
 	// mc, mcExists := motionManager.motions[e1]
 
@@ -163,7 +204,7 @@ func DetectCollision(e1 *Entity, ignoreList ...*Entity) bool {
 
 		// log.Print(cc.Enabled && collides, currentCollider, foundedCollider)
 		if cc.Enabled && collides {
-			return true
+			return true, e2
 		}
 		// if isPowerUp && cc.Disabled && collides {
 		// 	playerPowerUps, exists := powerUpManager.powerUps[e1]
@@ -193,7 +234,7 @@ func DetectCollision(e1 *Entity, ignoreList ...*Entity) bool {
 		// }
 	}
 	// collisionManager.mutex.RUnlock()
-	return false
+	return false, nil
 }
 
 func contains[T comparable](itemArray []T, item T) bool {

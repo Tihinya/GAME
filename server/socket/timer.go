@@ -5,7 +5,6 @@ import (
 	"bomberman-dom/engine"
 	"bomberman-dom/gameloop"
 	"bomberman-dom/models"
-	"log"
 	"time"
 )
 
@@ -83,7 +82,7 @@ func newClosingLobbyState(timer *Timer) ClosingLobbyState {
 
 func (s ClosingLobbyState) startTimer(countdown int) {
 	s.timer.instance = time.NewTicker(time.Second * 1)
-	s.timer.currentTime = 2
+	s.timer.currentTime = 21
 
 	for range s.timer.instance.C {
 		playersAmount := s.timer.lobby.getAmountOfPlayers()
@@ -128,7 +127,7 @@ func newStartingGameState(timer *Timer) StartingGameState {
 
 func (s StartingGameState) startTimer(countdown int) {
 	s.timer.instance = time.NewTicker(time.Second * 1)
-	s.timer.currentTime = 1
+	s.timer.currentTime = 11
 
 	for range s.timer.instance.C {
 		playersAmount := s.timer.lobby.getAmountOfPlayers()
@@ -153,23 +152,19 @@ func (s StartingGameState) startTimer(countdown int) {
 				gs := engine.CreateMap()
 				s.timer.lobby.BroadcastAllClients(SerializeData("game_event", gs))
 
-				// log.Println("time elapsed:", f)
-
 				engine.CallExplosionSystem.Update(f)
 				engine.CallHealthSystem.Update(f)
 				engine.CallInputSystem.Update(f)
 				engine.CallMotionSystem.Update(f)
-				engine.CallDamageSystem.Update(f)
 				engine.CallPowerUpSystem.Update(f)
 
 				if len(gs.Players) < 2 {
-					// end screen
-					log.Println("game ended")
 					gl.Stop()
 				}
 			})
 			gl.Start()
 
+			s.timer.lobby.BroadcastAllClients(SerializeData(GameEventGameState, models.ChangeState{State: "main_page"}))
 			s.timer.lobby.removeAllPlayers()
 			engine.RemoveMap()
 			return

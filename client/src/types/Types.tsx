@@ -52,6 +52,7 @@ type Position = {
   x: number;
   y: number;
   id: number;
+  name: string;
 };
 
 type Block = {
@@ -63,8 +64,3 @@ export type GameState = {
   powerups: Position[];
   map: (Block | null)[][];
 };
-
-// walls: Position[];
-//   boxes: Position[];
-//   explosions: Position[];
-//   bombs: Position[];

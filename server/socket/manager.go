@@ -114,7 +114,6 @@ func (m *Manager) GetConnectedClients() models.Event {
 }
 
 func (m *Manager) ServeWS(w http.ResponseWriter, r *http.Request) {
-	// TODO: return error with websocket and close connection. This part wont work
 
 	websocketUpgrader.CheckOrigin = func(r *http.Request) bool { return true }
 	conn, err := websocketUpgrader.Upgrade(w, r, nil)
@@ -122,9 +121,6 @@ func (m *Manager) ServeWS(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 
 		log.Println(err)
-		// helpers.ReturnMessageJSON(w,
-		// 	"Could not upgrade to websocket connection, internal error",
-		// 	http.StatusInternalServerError, "Error")
 		return
 	}
 

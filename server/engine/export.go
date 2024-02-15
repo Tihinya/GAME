@@ -1,6 +1,8 @@
 package engine
 
-import "math/rand"
+import (
+	"math/rand"
+)
 
 type GameState struct {
 	Map      [][]*Tile `json:"map"`
@@ -16,11 +18,6 @@ type Tile struct {
 	Size float64 `json:"size"`
 }
 
-// 4. generate initial game
-// 5. create map with static objects y13*x31
-// 6. Update map every 1/60 of a second
-
-// takes initial map from config. 1 - spawn point, 2 - floor, 3 - spawn point protection, 4 - walls
 func CreateGame(initialMap [][]int, players []int) {
 	currentPlayer := 0
 	maxPlayers := len(players)
@@ -36,7 +33,7 @@ func CreateGame(initialMap [][]int, players []int) {
 					currentPlayer++
 				}
 			case 2:
-				if rand.Intn(100) < 20 {
+				if rand.Intn(100) < 30 {
 					CreateBox(xCoord, yCoord)
 				}
 			case 4:
@@ -66,7 +63,11 @@ func CreateMap() *GameState {
 		if entity.Name == "player" {
 			gs.Players = append(gs.Players, createTile(position.X, position.Y, "", entity.Id))
 		} else if entity.Name == "powerup" {
-			gs.Powerups = append(gs.Powerups, createTile(position.X, position.Y, ""))
+			entityPowerUP, exist := powerUpManager.powerUps[entity]
+			if !exist {
+				continue
+			}
+			gs.Powerups = append(gs.Powerups, createTile(position.X, position.Y, entityPowerUP.Name))
 		}
 	}
 
@@ -77,8 +78,8 @@ func RemoveMap() {
 	for _, e := range entityManager.entities {
 		DeleteAllEntityComponents(e)
 	}
-
 	entityManager = NewEntityManager()
+
 }
 
 func createTile(x float64, y float64, name string, id ...int) *Tile {

@@ -52,6 +52,5 @@ function sendKeysToBackend(updatedKeys) {
     payload: { keys: updatedKeys },
   });
 
-  // console.log(jsonToSend);
   ws.send(jsonToSend);
 }

@@ -1,8 +1,12 @@
-import Gachi, { useEffect, useState } from "../../Gachi.js/src/core/framework";
+import Gachi, {
+  useContext,
+  useEffect,
+  useState,
+} from "../../Gachi.js/src/core/framework";
 import GameInput from "../../modules/commandEvents";
 import { subscribe } from "../../additional-functions/websocket";
 import { GameComponent } from "./gameComponent";
-import { EventType, GameState } from "../../types/Types";
+import { EventType, GameState, Page, PageState } from "../../types/Types";
 
 import "./gamepage.css";
 
@@ -17,11 +21,18 @@ export default function GamePage() {
     powerups: [],
     map: [],
   });
-  // console.log(gameState);
+  const navigate = useContext("switchPage");
 
   useEffect(() => {
     subscribe(EventType.GameEvent, (state: GameState) => {
       setGameState(state);
+    });
+
+    subscribe(EventType.GameEventGameState, ({ state }: Page) => {
+      switch (state) {
+        case PageState.MainPage:
+          navigate("main");
+      }
     });
   }, []);
 
@@ -43,7 +54,7 @@ export default function GamePage() {
           {/* <div className="game-page-label-count">4:19</div> */}
         </div>
         <div className="game-page-panel">
-          <div className="game-page-label">Score</div>
+          <div className="game-page-label">Bombs</div>
           {/* <div className="game-page-label-count">13000</div> */}
         </div>
         <div className="game-page-panel">

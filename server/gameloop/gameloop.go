@@ -20,8 +20,6 @@ func New(tickRate int, onUpdate func(float64)) *GameLoop {
 }
 
 func (gl *GameLoop) startLoop() {
-	// runtime.LockOSThread()
-	// defer runtime.UnlockOSThread()
 
 	tickInterval := time.Second / time.Duration(gl.tickRate)
 	timeStart := time.Now()
@@ -36,6 +34,7 @@ func (gl *GameLoop) startLoop() {
 
 		case <-gl.quit:
 			ticker.Stop()
+			return
 		}
 	}
 }
@@ -62,7 +61,7 @@ func (gl *GameLoop) Start() {
 
 // Stop game loop
 func (gl *GameLoop) Stop() {
-	gl.quit <- true
+	close(gl.quit)
 }
 
 // Restart game loop

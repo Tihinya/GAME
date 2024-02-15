@@ -1,14 +1,13 @@
 package engine
 
 import (
-	"fmt"
 	"time"
 
 	"bomberman-dom/models"
 )
 
 var (
-	fuseTime    = time.Millisecond * 2000
+	fuseTime    = time.Millisecond * 3000
 	explodeTime = time.Millisecond * 1500
 )
 
@@ -17,20 +16,19 @@ var (
 // --------------------------------
 
 var (
-	entityManager     = NewEntityManager()
-	positionManager   = NewPositionManager()
-	motionManager     = NewMotionManager()
-	inputManager      = NewInputManager()
-	timerManager      = NewTimerManager()
-	bombManager       = NewBombManager()
-	explosionManager  = NewExplosionManager()
-	collisionManager  = NewCollisionManager()
-	powerUpManager    = NewPowerUpManager()
-	damageManager     = NewDamageManager()
-	healthManager     = NewHealthManager()
-	boxManager        = NewBoxManager()
-	wallManager       = NewWallManager()
-	userEntityManager = NewUserEntityManager()
+	entityManager           = NewEntityManager()
+	positionManager         = NewPositionManager()
+	motionManager           = NewMotionManager()
+	inputManager            = NewInputManager()
+	timerManager            = NewTimerManager()
+	bombManager             = NewBombManager()
+	explosionManager        = NewExplosionManager()
+	collisionManager        = NewCollisionManager()
+	powerUpManager          = NewPowerUpManager()
+	damageManager           = NewDamageManager()
+	healthManager           = NewHealthManager()
+	explosionStopperManager = NewExplosionStopperManager()
+	userEntityManager       = NewUserEntityManager()
 )
 
 // --------------------------------
@@ -46,69 +44,72 @@ var (
 	CallPowerUpSystem   = NewPowerUpSystem()
 )
 
-// var damageSystem = NewDamageSystem()
-// var bombSystem = NewBombSystem()
+const (
+	SpeedPowerUp  = 0.2
+	HealthPowerUp = 1
+	BombPowerUp   = 1
+	BlastPowerUp  = 1
+)
 
-// Solving import cycles the interface way!!
-// var broadcaster helpers.Broadcaster
-
-// func SetBroadcaster(b helpers.Broadcaster) {
-// 	broadcaster = b
-// }
-
-func (dm *DamageSystem) Update(dt float64) {
-	for e, damge := range dm.manager.damages {
-		if collistion, entity := DetectCollision(e); collistion {
-			entityHealth := healthManager.healths[entity]
-			entityHealth.CurrentHealth -= damge.DamageAmount
-			if entityHealth.CurrentHealth < 1 {
-				DeleteAllEntityComponents(e)
+func (pw *PowerUpSystem) Update(dt float64) {
+	for powerUpEntity, powerUpComponent := range pw.manager.powerUps {
+		powerUpPosition := positionManager.positions[powerUpEntity]
+		for playerEntity, motionComponent := range motionManager.motions {
+			playerPosition := positionManager.positions[playerEntity]
+			if !isRectangleCollides(powerUpPosition, playerPosition) {
+				continue
+			}
+			// log.Println(powerUpComponent.Name)
+			if powerUpComponent.Name == "speedPowerUp" {
+				motionComponent.SpeedMultiplier += SpeedPowerUp
+				DeleteAllEntityComponents(powerUpEntity)
+			} else if powerUpComponent.Name == "bombPowerUp" {
+				bombComponent := bombManager.bombs[playerEntity]
+				bombComponent.BombAmount += BombPowerUp
+				DeleteAllEntityComponents(powerUpEntity)
+			} else if powerUpComponent.Name == "exposionPowerup" {
+				bombComponent := bombManager.bombs[playerEntity]
+				bombComponent.BlastRadius += BlastPowerUp
+				DeleteAllEntityComponents(powerUpEntity)
 			}
 		}
 	}
 }
 
-const SpeedPowerUp = 10
-const HealthPowerUp = 1
+func (hs *HealthSystem) Update(dt float64) {
+	for damageEntity, damage := range damageManager.damages {
+		damagePosition := positionManager.positions[damageEntity]
+		for healthEntity, health := range healthManager.healths {
+			healthPosition := positionManager.positions[healthEntity]
 
-func (pw *PowerUpSystem) Update(dt float64) {
-	for powerup, powerUpComponent := range pw.manager.powerUps {
-		if collistion, player := DetectCollision(powerup); !collistion {
-			if powerUpComponent.Name == "speedPowerUp" {
-				mc := motionManager.motions[player]
-				mc.Speed += SpeedPowerUp
-				DeleteAllEntityComponents(powerup)
-			} else if powerUpComponent.Name == "bombPowerUp" {
-				DeleteAllEntityComponents(powerup)
-			} else if powerUpComponent.Name == "healthPowerUp" {
-				hl := healthManager.healths[player]
-				hl.MaxHealth += HealthPowerUp
-				DeleteAllEntityComponents(powerup)
-			} else if powerUpComponent.Name == "exposionPowerup" {
-				DeleteAllEntityComponents(powerup)
+			if time.Since(health.lastTimeDamage) <= time.Second*2 || !isRectangleCollides(damagePosition, healthPosition) {
+				continue
 			}
+			health.CurrentHealth -= damage.DamageAmount
+			health.lastTimeDamage = time.Now()
+			health.OnDestroy()
 		}
 	}
 }
 
 func (mv *MotionSystem) Update(dt float64) {
-	for e, mc := range mv.manager.motions {
-		pc, exists := positionManager.positions[e]
-		if !exists || (mc.Velocity.X == 0 && mc.Velocity.Y == 0) {
-			return
+	for player, playerMotion := range mv.manager.motions {
+		playerPosition := positionManager.positions[player]
+		if playerMotion.Velocity.X == 0 && playerMotion.Velocity.Y == 0 {
+			continue
 		}
-		pc.X += mc.Velocity.X
-		pc.Y += mc.Velocity.Y
+		playerPosition.X += playerMotion.Velocity.X * playerMotion.SpeedMultiplier
+		playerPosition.Y += playerMotion.Velocity.Y * playerMotion.SpeedMultiplier
 
-		mc.Velocity.X += mc.Acceleration.X
-		mc.Velocity.Y += mc.Acceleration.Y
+		// mc.Velocity.X += mc.Acceleration.X
+		// mc.Velocity.Y += mc.Acceleration.Y
 
-		if collistion, _ := DetectCollision(e); collistion {
-			pc.X -= mc.Velocity.X
-			pc.Y -= mc.Velocity.Y
+		if collistion := DetectCollision(player); collistion {
+			playerPosition.X -= playerMotion.Velocity.X * playerMotion.SpeedMultiplier
+			playerPosition.Y -= playerMotion.Velocity.Y * playerMotion.SpeedMultiplier
 
-			mc.Velocity.X -= mc.Acceleration.X
-			mc.Velocity.Y -= mc.Acceleration.Y
+			// mc.Velocity.X -= mc.Acceleration.X
+			// mc.Velocity.Y -= mc.Acceleration.Y
 		}
 	}
 }
@@ -131,34 +132,25 @@ func (is *InputSystem) Update(dt float64) {
 			mc.Velocity.X = 1
 		}
 		if ic.Input[Space] {
-			bomb := CreateBomb(e)
-			fmt.Println(bomb)
-			// if collistion, _ := DetectCollision(bomb, e); collistion {
-			// 	delete(positionManager.positions, bomb)
-			// }
-		}
-	}
-}
-
-func (hs *HealthSystem) Update(dt float64) {
-	for e, hc := range hs.manager.healths {
-		if hc.CurrentHealth <= 0 {
-			DeleteAllEntityComponents(e)
-		}
-		if hc.CurrentHealth > hc.MaxHealth {
-			hc.CurrentHealth = hc.MaxHealth
+			CreateBomb(e)
 		}
 	}
 }
 
 func (ex *ExplosionSystem) Update(dt float64) {
-	for e := range bombManager.bombs {
+	for e, bombComponent := range bombManager.bombs {
 		bombTimer := timerManager.GetTimer(e)
 		if bombTimer == nil {
-			fmt.Println("No timer found for bomb", e.Id)
 			continue // Skip if no timer is set for this bomb
 		}
 		if time.Now().After(bombTimer.Time) {
+			player := bombComponent.Owner
+			if player == nil {
+				continue
+			}
+
+			playerBomb := bombManager.bombs[player]
+			playerBomb.PlacedBombs -= 1
 			SpreadExplosion(e)
 			DeleteAllEntityComponents(e)
 		}
@@ -167,7 +159,6 @@ func (ex *ExplosionSystem) Update(dt float64) {
 	for e2 := range explosionManager.explosions {
 		explosionTimer := timerManager.GetTimer(e2)
 		if explosionTimer == nil {
-			fmt.Println("No timer found for explosion", e2.Id)
 			continue
 		}
 		if time.Now().After(explosionTimer.Time) {
@@ -183,11 +174,8 @@ func HandleInput(input models.GameInput, playerId int) {
 	}
 }
 
-func DetectCollision(e1 *Entity, ignoreList ...*Entity) (bool, *Entity) {
+func DetectCollision(e1 *Entity, ignoreList ...*Entity) bool {
 	currentCollider := positionManager.positions[e1]
-	// mc, mcExists := motionManager.motions[e1]
-
-	// collisionManager.mutex.RLock()
 
 	for e2, cc := range collisionManager.collisions {
 		if e1 == e2 || !cc.Enabled || contains(ignoreList, e2) {
@@ -195,46 +183,21 @@ func DetectCollision(e1 *Entity, ignoreList ...*Entity) (bool, *Entity) {
 		}
 
 		foundedCollider := positionManager.positions[e2]
-		// powerUp, isPowerUp := powerUpManager.powerUps[e2]
 
-		collides := (currentCollider.X < foundedCollider.X+foundedCollider.Size) &&
-			(currentCollider.X+currentCollider.Size > foundedCollider.X) &&
-			(currentCollider.Y < foundedCollider.Y+foundedCollider.Size) &&
-			(currentCollider.Y+currentCollider.Size > foundedCollider.Y)
+		collides := isRectangleCollides(currentCollider, foundedCollider)
 
-		// log.Print(cc.Enabled && collides, currentCollider, foundedCollider)
-		if cc.Enabled && collides {
-			return true, e2
+		if collides {
+			return true
 		}
-		// if isPowerUp && cc.Disabled && collides {
-		// 	playerPowerUps, exists := powerUpManager.powerUps[e1]
-		// 	if !exists {
-		// 		return collides
-		// 	}
-
-		// 	switch powerUp.Name {
-		// 	case PowerUpSpeed:
-		// 		if mcExists {
-		// 			mc.Speed += Speed
-		// 			DeleteAllEntityComponents(e2)
-		// 		}
-		// 	case PowerUpHealth:
-		// 		if hc, exists := healthManager.healths[e1]; exists {
-		// 			hc.CurrentHealth += Regeneration
-		// 			DeleteAllEntityComponents(e2)
-		// 		}
-		// 	case PowerUpBomb:
-		// 		playerPowerUps.ExtraBombs += Bomb
-		// 		DeleteAllEntityComponents(e2)
-		// 	case PowerUpExplosion:
-		// 		playerPowerUps.ExtraExplosionRange += ExplosionRange
-		// 		DeleteAllEntityComponents(e2)
-		// 	}
-		// 	return false
-		// }
 	}
-	// collisionManager.mutex.RUnlock()
-	return false, nil
+	return false
+}
+
+func isRectangleCollides(firstEntity, secondEntity *PositionComponent) bool {
+	return (firstEntity.X < secondEntity.X+secondEntity.Size) &&
+		(firstEntity.X+firstEntity.Size > secondEntity.X) &&
+		(firstEntity.Y < secondEntity.Y+secondEntity.Size) &&
+		(firstEntity.Y+firstEntity.Size > secondEntity.Y)
 }
 
 func contains[T comparable](itemArray []T, item T) bool {

@@ -89,10 +89,10 @@
   background-image: url("/sprites/assets/Block.png");
 }
 
-.explosion {
+/* .explosion {
   background-position-x: 0px;
   background-image: url("/sprites/assets/ExplosionEnd.png");
-}
+} */
 
 .box {
   background-image: url("/sprites/assets/Wall.png");
@@ -101,6 +101,38 @@
 .bomb {
   background-image: url("/sprites/assets/Bomb.png");
   transform: scale(0.7);
+}
+
+.explosion {
+  background-position-x: 0px;
+  background-image: url("/sprites/assets/ExplosionCenter.png");
+}
+
+.powerupBlastRadius {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  background-size: contain;
+  background-image: url("/sprites/assets/ItemBlastRadius.png");
+  transform: scale(1.25) translate(5px, 5px);
+}
+
+.powerupSpeed {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  background-size: contain;
+  background-image: url("/sprites/assets/ItemSpeedIncrease.png");
+  transform: scale(1.25) translate(5px, 5px);
+}
+
+.powerupBomb {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  background-size: contain;
+  background-image: url("/sprites/assets/ItemExtraBomb.png");
+  transform: scale(1.25) translate(5px, 5px);
 }
 
 .player {

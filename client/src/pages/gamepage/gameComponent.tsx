@@ -7,6 +7,11 @@ type GameComponentProps = {
 
 const cellWidth = 50;
 
+const powerupClasses = {
+  speedPowerUp: "powerupSpeed",
+  exposionPowerup: "powerupBlastRadius",
+  bombPowerUp: "powerupBomb",
+};
 export function GameComponent({ gameState }: GameComponentProps) {
   if (gameState.map.length === 0) {
     return;
@@ -36,11 +41,15 @@ export function GameComponent({ gameState }: GameComponentProps) {
           );
         })}
 
-      {gameState.powerups.map((position) => {
+      {gameState.powerups.map((position, index) => {
+        const powerUpName = gameState.powerups[index]?.name;
+        const powerupClass = powerupClasses[powerUpName];
+
         return (
           <div
-            className={"powerup"}
-            style={`top: ${position.y}px; left: ${position.x}px`}
+            className={`powerup ${powerupClass}`}
+            style={`top: ${position.y * 1.25}px; left: ${position.x * 1.25}px`}
+            key={`powerup-${index}`}
           ></div>
         );
       })}

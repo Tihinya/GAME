@@ -27,10 +27,6 @@ type ClientInfo struct {
 	Id       int    `json:"id"`
 }
 
-type GameState struct { // game_state
-	State string `json:"game_state"` // "STARTED", "PAUSED", "ENDED"
-}
-
 type GameInput struct { // game_input
 	Keys map[string]bool `json:"keys"`
 }

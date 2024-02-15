@@ -4,13 +4,17 @@ import (
 	"log"
 	"net/http"
 
-	"bomberman-dom/engine"
+	"bomberman-dom/config"
 	"bomberman-dom/socket"
 )
 
 func main() {
+	config.ParseConfig("./config.json")
+
 	socket.Instance = socket.NewManager()
-	engine.SetBroadcaster(socket.Instance)
+	// engine.SetBroadcaster(socket.Instance.Lobby)
+
+	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 
 	http.HandleFunc("/ws", socket.Instance.ServeWS)
 

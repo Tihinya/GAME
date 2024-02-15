@@ -1,12 +1,15 @@
 package socket
 
 import (
-	"encoding/json"
-	"fmt"
-
 	"bomberman-dom/engine"
 	"bomberman-dom/models"
+	"encoding/json"
+	"fmt"
 )
+
+func GameStateHandler(event models.Event, c *Client) error {
+	return nil
+}
 
 func GameInputHandler(event models.Event, c *Client) error {
 	var gameInput models.GameInput

@@ -1,31 +1,24 @@
 package engine
 
 import (
+	"math"
+	"math/rand"
 	"time"
 )
 
 const (
-	Speed          = 1.0
-	Acceleration   = 1.0
-	Regeneration   = 1
-	Bomb           = 1
-	ExplosionRange = 1
-)
-
-const (
-	Up               = "up"
-	Down             = "down"
-	Left             = "left"
-	Right            = "right"
-	Space            = "space"
+	Up               = "KeyW"
+	Down             = "KeyS"
+	Left             = "KeyA"
+	Right            = "KeyD"
+	Space            = "Space"
 	PowerUpSpeed     = 1
 	PowerUpBomb      = 2
-	PowerUpHealth    = 3
-	PowerUpExplosion = 4
+	PowerUpExplosion = 3
 )
 
 const (
-	componentSize         = 1.0
+	componentSize         = 40.0
 	playerMaxHealth       = 3
 	boxHealth             = 1
 	defaultExplosionRange = 2
@@ -33,78 +26,82 @@ const (
 	defaultBombAmount     = 1
 )
 
-const (
-	LeftSprite  = "leftSprite.png"
-	RightSprite = "rightSprite.png"
-	UpSprite    = "upSprite.png"
-	DownSprite  = "downSprite.png"
-)
-
-var (
-	player1SpawnX = 10.0
-	player1Spawny = 5.0
-)
-
-func CreatePlayer(socketId int) *Entity {
-	player := entityManager.CreateEntity()
+func CreatePlayer(socketId int, x, y float64) *Entity {
+	player := entityManager.CreateEntity("player")
 
 	playerUser := &UserEntityComponent{entity: player}
-	playerPosition := &PositionComponent{X: player1SpawnX, Y: player1Spawny, Size: componentSize}
-	playerMotion := &MotionComponent{Velocity: Vec2{X: 0, Y: 0}, Acceleration: Vec2{X: 0, Y: 0}}
+	playerCollision := &CollisionComponent{Enabled: true}
+	playerPosition := &PositionComponent{X: x, Y: y, Size: 30}
+	playerMotion := &MotionComponent{Velocity: Vec2{X: 0, Y: 0}, Acceleration: Vec2{X: 0, Y: 0}, SpeedMultiplier: 1}
 	playerInput := &InputComponent{Input: map[string]bool{}}
+	playerBomb := &BombComponent{BlastRadius: 2, BombAmount: 1}
 	playerHealth := &HealthComponent{CurrentHealth: playerMaxHealth, MaxHealth: playerMaxHealth}
-	playerPowerUps := &PowerUpComponent{ExtraBombs: 0, ExtraExplosionRange: 0, ExtraSpeed: 0}
 
+	playerHealth.OnDestroy = func() {
+		if playerHealth.CurrentHealth > 0 {
+			playerPosition.X = x
+			playerPosition.Y = y
+		} else {
+			DeleteAllEntityComponents(player)
+		}
+	}
+
+	bombManager.AddComponent(player, playerBomb)
 	userEntityManager.AddComponent(socketId, playerUser)
 	positionManager.AddComponent(player, playerPosition)
 	motionManager.AddComponent(player, playerMotion)
 	inputManager.AddComponent(player, playerInput)
 	healthManager.AddComponent(player, playerHealth)
-	powerUpManager.AddComponent(player, playerPowerUps)
-	broadcastPlayerCreation(playerPosition.X, playerPosition.Y, socketId)
+	collisionManager.AddComponent(player, playerCollision)
 
 	return player
 }
 
 func CreateBomb(player *Entity) *Entity {
-	var playerActiveBombs int
+	playerPosition := positionManager.GetPosition(player)
+	bombPosition := &PositionComponent{X: roundBase(playerPosition.X, componentSize), Y: roundBase(playerPosition.Y, componentSize), Size: componentSize}
 
-	pc := positionManager.GetPosition(player)
-	puc := powerUpManager.powerUps[player]
-
-	bombManager.mutex.RLock()
-	for _, bc := range bombManager.bombs {
-		bombManager.mutex.RUnlock()
-		if bc.Owner == player {
-			playerActiveBombs++
+	for e := range bombManager.bombs {
+		existingBombPosition := positionManager.positions[e]
+		if bombPosition.X == existingBombPosition.X && bombPosition.Y == existingBombPosition.Y {
+			return nil
 		}
-		bombManager.mutex.RLock()
 	}
-	bombManager.mutex.RUnlock()
 
-	if !(playerActiveBombs < (1 + puc.ExtraBombs)) {
+	playerBomb := bombManager.bombs[player]
+	if playerBomb.PlacedBombs >= playerBomb.BombAmount {
 		return nil
 	}
+	playerBomb.PlacedBombs += 1
+	bomb := entityManager.CreateEntity("bomb")
 
-	bomb := entityManager.CreateEntity()
-
-	bombComponent := &BombComponent{
-		BlastRadius: defaultExplosionRange + puc.ExtraExplosionRange,
-		IsActive:    true,
+	Bomb := &BombComponent{
+		BlastRadius: playerBomb.BlastRadius,
 		Owner:       player,
 	}
-	bombPosition := &PositionComponent{X: pc.X, Y: pc.Y, Size: pc.Size}
 	bombCollision := &CollisionComponent{Enabled: false}
 	bombTimer := &TimerComponent{time.Now().Add(fuseTime)}
+	explosionStopper := &ExplosionStopperComponent{passable: false}
 
 	collisionManager.AddComponent(bomb, bombCollision)
 	timerManager.AddComponent(bomb, bombTimer)
 	positionManager.AddComponent(bomb, bombPosition)
-	bombManager.AddComponent(bomb, bombComponent)
-
-	broadcastBomb(pc.X, pc.Y, "create")
+	bombManager.AddComponent(bomb, Bomb)
+	explosionStopperManager.AddComponent(bomb, explosionStopper)
 
 	return bomb
+}
+
+func roundBase(num float64, base float64) float64 {
+	modulo := math.Mod(num, base)
+
+	num -= modulo
+
+	if modulo < base/2 {
+		return num
+	} else {
+		return num + base
+	}
 }
 
 func SpreadExplosion(e *Entity) {
@@ -115,8 +112,7 @@ func SpreadExplosion(e *Entity) {
 		return
 	}
 
-	// Create an explosion at the bomb's position
-	createExplosionAtPosition(&PositionComponent{X: pc.X, Y: pc.Y, Size: 1})
+	CreateExplosion(&PositionComponent{X: pc.X, Y: pc.Y, Size: componentSize})
 
 	directions := []struct {
 		dx, dy float64
@@ -126,27 +122,25 @@ func SpreadExplosion(e *Entity) {
 
 	for _, dir := range directions {
 		for i := 1; i < bc.BlastRadius; i++ {
-			newPos := &PositionComponent{X: pc.X + float64(i)*dir.dx, Y: pc.Y + float64(i)*dir.dy}
+			currentRadius := float64(i) * componentSize
+			newPos := &PositionComponent{X: pc.X + currentRadius*dir.dx, Y: pc.Y + currentRadius*dir.dy, Size: componentSize}
 
-			if IsWallAtPosition(newPos) {
-				break // Wall is blocking this direction
+			stopper := isExplosionBlocked(newPos)
+			if stopper == nil {
+				CreateExplosion(newPos)
+				continue
 			}
-			if IsBoxAtPosition(newPos) {
-				createExplosionAtPosition(newPos)
-				break // Explode at wall and block all next explosions
+
+			if stopper.passable {
+				CreateExplosion(newPos)
 			}
-			createExplosionAtPosition(newPos)
+			break
 		}
 	}
 }
 
-func createExplosionAtPosition(pos *PositionComponent) {
-	ExplodeBox(pos)
-	CreateExplosion(pos)
-}
-
 func CreateExplosion(positionComponent *PositionComponent) {
-	explosion := entityManager.CreateEntity()
+	explosion := entityManager.CreateEntity("explosion")
 
 	explosionComponent := &ExplosionComponent{}
 	explosionPosition := positionComponent
@@ -157,76 +151,69 @@ func CreateExplosion(positionComponent *PositionComponent) {
 	positionManager.AddComponent(explosion, explosionPosition)
 	damageManager.AddComponent(explosion, explosionDamage)
 	explosionManager.AddComponent(explosion, explosionComponent)
-
-	broadcastExplosion(positionComponent.X, positionComponent.Y, "create")
 }
 
-func CreatePowerUp(powerUpName int) *Entity {
-	powerUp := entityManager.CreateEntity()
+func CreatePowerUp(powerUpName string, x, y float64) *Entity {
+	powerUp := entityManager.CreateEntity("powerup")
 
-	powerUpPosition := &PositionComponent{}
+	powerUpPosition := &PositionComponent{X: x, Y: y, Size: componentSize}
 	powerUpProperty := &PowerUpComponent{Name: powerUpName}
 
 	positionManager.AddComponent(powerUp, powerUpPosition)
 	powerUpManager.AddComponent(powerUp, powerUpProperty)
 
-	broadcastPowerup(powerUpPosition.X, powerUpPosition.Y, powerUpName, "create")
-
 	return powerUp
 }
 
 func CreateWall(X, Y float64) *Entity {
-	wall := entityManager.CreateEntity()
+	wall := entityManager.CreateEntity("wall")
+	wallCollision := &CollisionComponent{Enabled: true}
+	wallPosition := &PositionComponent{X: X, Y: Y, Size: componentSize}
+	explosionStopper := &ExplosionStopperComponent{passable: false}
 
-	playerPosition := &PositionComponent{X: X, Y: Y, Size: 1}
-	wallIdentifier := &WallComponent{}
-
-	positionManager.AddComponent(wall, playerPosition)
-	wallManager.AddComponent(wall, wallIdentifier)
-
-	broadcastObstacle(X, Y, "wall", "create")
+	collisionManager.AddComponent(wall, wallCollision)
+	positionManager.AddComponent(wall, wallPosition)
+	explosionStopperManager.AddComponent(wall, explosionStopper)
 
 	return wall
 }
 
 func CreateBox(X, Y float64) *Entity {
-	box := entityManager.CreateEntity()
+	box := entityManager.CreateEntity("box")
 
-	playerPosition := &PositionComponent{X: X, Y: Y, Size: 1}
-	playerHealth := &HealthComponent{CurrentHealth: boxHealth, MaxHealth: boxHealth}
-	boxIdentifier := &BoxComponent{}
+	boxCollision := &CollisionComponent{Enabled: true}
+	boxPosition := &PositionComponent{X: X, Y: Y, Size: componentSize}
+	boxHealth := &HealthComponent{CurrentHealth: boxHealth, MaxHealth: boxHealth}
+	explosionStopper := &ExplosionStopperComponent{passable: true}
 
-	positionManager.AddComponent(box, playerPosition)
-	healthManager.AddComponent(box, playerHealth)
-	boxManager.AddComponent(box, boxIdentifier)
+	boxHealth.OnDestroy = func() {
+		DeleteAllEntityComponents(box)
+		if rand.Intn(101) <= 60 {
+			switch rand.Intn(3) + 1 {
+			case PowerUpSpeed:
+				CreatePowerUp("speedPowerUp", X, Y)
+			case PowerUpBomb:
+				CreatePowerUp("bombPowerUp", X, Y)
+			case PowerUpExplosion:
+				CreatePowerUp("exposionPowerup", X, Y)
+			}
+		}
+	}
 
-	broadcastObstacle(X, Y, "box", "create")
+	collisionManager.AddComponent(box, boxCollision)
+	positionManager.AddComponent(box, boxPosition)
+	healthManager.AddComponent(box, boxHealth)
+	explosionStopperManager.AddComponent(box, explosionStopper)
 
 	return box
 }
 
-func IsWallAtPosition(pos *PositionComponent) bool {
-	// Iterate over all entities to check for a wall at the given position
-	for _, e := range entityManager.entities {
-		if wallComp := wallManager.GetWall(e); wallComp != nil {
-			wallPos := positionManager.GetPosition(e)
-			if wallPos != nil && wallPos.X == pos.X && wallPos.Y == pos.Y {
-				return true // Found a wall at the position
-			}
+func isExplosionBlocked(pos *PositionComponent) *ExplosionStopperComponent {
+	for e, stopper := range explosionStopperManager.explosionStoppers {
+		unbreakablePosition := positionManager.positions[e]
+		if pos.X == unbreakablePosition.X && pos.Y == unbreakablePosition.Y {
+			return stopper
 		}
 	}
-	return false
-}
-
-func IsBoxAtPosition(pos *PositionComponent) bool {
-	// Iterate over all entities to check for a wall at the given position
-	for _, e := range entityManager.entities {
-		if boxComp := boxManager.GetBox(e); boxComp != nil {
-			boxPos := positionManager.GetPosition(e)
-			if boxPos != nil && boxPos.X == pos.X && boxPos.Y == pos.Y {
-				return true // Found a wall at the position
-			}
-		}
-	}
-	return false
+	return nil
 }

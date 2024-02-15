@@ -12,30 +12,19 @@ type Event struct {
 	Payload json.RawMessage `json:"payload"`
 }
 
-type SendMessageEvent struct {
-	Message  string    `json:"message"`
-	SenderID int       `json:"sender_id"`
-	SentTime time.Time `json:"sent_time"`
+type MessageEvent struct {
+	Name    string    `json:"name"`
+	Time    time.Time `json:"send_time"`
+	Message string    `json:"message"`
 }
 
 type ConnectedUserListEvent struct {
 	List map[int]string `json:"list"`
 }
 
-type ReceivedMessage struct {
-	Message    string    `json:"message"`
-	SenderID   int       `json:"sender_id"`
-	ReceiverID int       `json:"receiver_id"`
-	Sent       time.Time `json:"sent_time"`
-}
-
 type ClientInfo struct {
 	Username string `json:"username"`
 	Id       int    `json:"id"`
-}
-
-type GameState struct { // game_state
-	State string `json:"game_state"` // "STARTED", "PAUSED", "ENDED"
 }
 
 type GameInput struct { // game_input
@@ -90,4 +79,35 @@ type GamePlayerHealth struct {
 type Response struct {
 	Status  string `json:"status"`
 	Message string `json:"message,omitempty"`
+}
+
+type AddUsernameEvent struct {
+	UserName string `json:"username"`
+}
+
+type CurrentUsers struct {
+	UserList []string `json:"user_list"`
+}
+
+type ChangeState struct {
+	State string `json:"state"`
+}
+
+type LobbyState struct {
+	CurrentTime int    `json:"currentTime"`
+	State       string `json:"state"`
+}
+
+type Position struct {
+	X, Y float64
+	Size float64
+}
+
+type GameStateTransmission struct {
+	players    []Position
+	bombs      []Position
+	explosions []Position
+	walls      []Position
+	boxes      []Position
+	powerups   []Position
 }

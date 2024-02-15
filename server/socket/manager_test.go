@@ -67,10 +67,9 @@ func connectSocket(t *testing.T, baseURL string, username string) *websocket.Con
 }
 
 func sendMessage(t *testing.T, connection *websocket.Conn, message string, senderId int) {
-	sendData := &models.SendMessageEvent{
-		Message:  message,
-		SenderID: senderId,
-		SentTime: time.Now(),
+	sendData := &models.MessageEvent{
+		Message: message,
+		Time:    time.Now(),
 	}
 
 	jsonData, err := json.Marshal(sendData)
@@ -80,7 +79,7 @@ func sendMessage(t *testing.T, connection *websocket.Conn, message string, sende
 
 	var payload json.RawMessage = jsonData
 
-	eventData := socket.Event{
+	eventData := models.Event{
 		Type:    "send_message",
 		Payload: payload,
 	}
@@ -130,7 +129,7 @@ func receiveMessage(t *testing.T, connection *websocket.Conn, receiveType string
 			t.Fatalf("ERROR: Could not read message: %v", err)
 
 		case receivedPayload := <-messageChan:
-			var event socket.Event
+			var event models.Event
 			if err := json.Unmarshal(receivedPayload, &event); err != nil {
 				t.Fatalf("ERROR: bad payload in request: %v", err)
 			}
@@ -138,7 +137,7 @@ func receiveMessage(t *testing.T, connection *websocket.Conn, receiveType string
 			switch event.Type {
 			case socket.EventReceiveMessage:
 				if receiveType == "chat_message" {
-					var message models.SendMessageEvent
+					var message models.MessageEvent
 					if err := json.Unmarshal(event.Payload, &message); err != nil {
 						t.Fatalf("ERROR: unmarshaling message: %v\n", err)
 					}

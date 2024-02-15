@@ -11,12 +11,14 @@ import (
 
 type (
 	ClientList map[*Client]bool
+	OnlineList map[string]*Client
 	Client     struct {
 		connection *websocket.Conn
 		manager    *Manager
 		egress     chan models.Event
 		id         int // Unique identifier for the client
 		username   string
+		lobby      *Lobby
 	}
 )
 
@@ -26,13 +28,13 @@ var (
 	maxMessageSize = 512
 )
 
-func NewClient(conn *websocket.Conn, manager *Manager, username string, id int) *Client {
+func NewClient(conn *websocket.Conn, manager *Manager) *Client {
+	manager.UserId++
 	return &Client{
 		connection: conn,
 		manager:    manager,
 		egress:     make(chan models.Event),
-		username:   username,
-		id:         id,
+		id:         manager.UserId,
 	}
 }
 

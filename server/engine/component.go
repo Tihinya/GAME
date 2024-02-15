@@ -5,55 +5,70 @@ import (
 )
 
 type PositionComponent struct {
-	X, Y float64
-	Size float64
+	X, Y  float64
+	Size  float64
+	Angle float64
 }
+
 type Vec2 struct {
 	X, Y float64
 }
+
 type MotionComponent struct {
-	Speed        float64
-	Velocity     Vec2
-	Acceleration Vec2
+	SpeedMultiplier float64
+	Velocity        Vec2
+	Acceleration    Vec2
 }
-type SpriteComponent struct {
-	Texture string
-}
+
 type CollisionComponent struct {
 	Enabled bool
 }
+
 type HealthComponent struct {
-	CurrentHealth int
-	MaxHealth     int
+	lastTimeDamage time.Time
+	CurrentHealth  int
+	MaxHealth      int
+	OnDestroy      func()
 }
+
 type InputComponent struct {
 	Input map[string]bool
 }
+
 type TimerComponent struct {
 	Time time.Time
 }
+
 type PowerUpComponent struct {
-	ExtraBombs          int
-	ExtraExplosionRange int
-	ExtraSpeed          float64
-	Name                int
+	Name string
 }
+
 type DamageComponent struct {
 	DamageAmount int
 }
+
+// type BM struct {
+// 	BlastRadius int
+// 	BombAmount  int
+// 	PlacedBombs int
+// }
+
 type BombComponent struct {
 	BlastRadius int
-	IsActive    bool
+	BombAmount  int
+	PlacedBombs int
 	Owner       *Entity
 }
 type UserEntityComponent struct {
 	entity *Entity
 }
 
+type ExplosionStopperComponent struct {
+	passable bool
+}
+
 // doesn't need any attributes,
 // just for identifying explosions/boxes/walls
 type (
 	ExplosionComponent struct{}
-	BoxComponent       struct{}
-	WallComponent      struct{}
 )

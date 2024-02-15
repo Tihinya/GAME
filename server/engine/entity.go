@@ -1,5 +1,6 @@
 package engine
 
 type Entity struct {
-	Id int
+	Id   int
+	Name string
 }

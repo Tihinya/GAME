@@ -42,8 +42,8 @@ module.exports = {
         use: ["style-loader", "css-loader"],
       },
       {
-        test: /\.(svg|png)$/,
-        use: "file-loader",
+        test: /\.png/,
+        type: "asset/resource",
       },
     ],
   },
@@ -51,7 +51,7 @@ module.exports = {
     extensions: [".js", ".jsx", ".ts", ".tsx"], // Add support for resolving .js and .mjs extensions
   },
   devServer: {
-    static: path.join(__dirname, "./src/public"),
+    static: path.join(__dirname, "sprites"),
     historyApiFallback: true,
     port: 3000,
   },

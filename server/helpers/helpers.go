@@ -9,7 +9,6 @@ import (
 )
 
 type Broadcaster interface {
-	BroadcastClient(event models.Event, clientId int)
 	BroadcastAllClients(event models.Event)
 }
 
